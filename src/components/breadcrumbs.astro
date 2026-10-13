@@ -1,0 +1,12 @@
+---
+import { pageMetadata } from '@/lib/seo';
+const { crumbs } = pageMetadata(Astro.locals.portfolio, Astro.url.pathname);
+---
+{crumbs.length > 0 && <nav aria-label="Breadcrumb" class="px-4 py-3 text-xs text-muted-foreground">
+  <ol class="flex flex-wrap items-center gap-2">
+    {crumbs.map((crumb, i) => <li class="flex items-center gap-2">
+      {i > 0 && <span aria-hidden="true">/</span>}
+      {i === crumbs.length - 1 ? <span aria-current="page">{crumb.title}</span> : <a class="hover:text-foreground" href={crumb.path}>{crumb.title}</a>}
+    </li>)}
+  </ol>
+</nav>}

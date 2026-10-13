@@ -1,0 +1,101 @@
+{
+  "kind": "collectionType",
+  "collectionName": "articles",
+  "info": {
+    "singularName": "article",
+    "pluralName": "articles",
+    "displayName": "Articles",
+    "description": "Posts listed at /articles."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "pubDatetime": {
+      "type": "datetime",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "category": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::category.category",
+      "inversedBy": "articles"
+    },
+    "series": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::series.series",
+      "inversedBy": "articles"
+    },
+    "tags": {
+      "type": "component",
+      "component": "portfolio.tag",
+      "repeatable": true
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "body": {
+      "type": "richtext"
+    },
+    "seo": {
+      "type": "component",
+      "component": "portfolio.page-seo",
+      "repeatable": false
+    },
+    "sourceUrl": {
+      "type": "text",
+      "maxLength": 4096
+    },
+    "hashtags": {
+      "type": "component",
+      "component": "portfolio.tag",
+      "repeatable": true
+    },
+    "attachments": {
+      "type": "component",
+      "component": "portfolio.article-image",
+      "repeatable": true
+    },
+    "exercise": {
+      "type": "component",
+      "component": "portfolio.article-exercise",
+      "repeatable": false
+    },
+    "contentKind": {
+      "type": "enumeration",
+      "enum": [
+        "technical",
+        "personal"
+      ],
+      "default": "technical",
+      "required": true
+    },
+    "seriesOrder": {
+      "type": "integer",
+      "min": 1
+    },
+    "movieMoments": {
+      "type": "component",
+      "component": "portfolio.movie-moment",
+      "repeatable": true
+    }
+  }
+}

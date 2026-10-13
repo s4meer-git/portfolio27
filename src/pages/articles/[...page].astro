@@ -1,0 +1,20 @@
+---
+import ArticlesPage from "@/components/articles-page.astro";
+import ArticleDetail from "@/components/article-detail.astro";
+const path = Astro.params.page || "";
+const isListing = !path || /^\d+$/.test(path);
+const { site } = Astro.locals.portfolio;
+const articles = Astro.locals.portfolio.articles.filter(p => p.data.contentKind !== 'personal');
+const post = articles.find(p => p.id === path);
+if (isListing) {
+  const number = Number(path || 1);
+  const last = Math.max(
+    1,
+    Math.ceil(articles.length / (site.articlesPerPage || 6))
+  );
+  if (!Number.isInteger(number) || number < 1 || number > last)
+    return new Response("Page not found", { status: 404 });
+} else if (!post) return new Response("Article not found", { status: 404 });
+---
+
+{isListing ? <ArticlesPage /> : <ArticleDetail post={post} />}

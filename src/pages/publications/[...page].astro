@@ -1,0 +1,25 @@
+---
+import PublicationsPage from "@/components/publications-page.astro";
+import PublicationDetail from "@/components/publication-detail.astro";
+const path = Astro.params.page || "";
+const isListing = !path || /^\d+$/.test(path);
+const { publications, site } = Astro.locals.portfolio;
+const publication = publications.find(p => p.id === path);
+if (isListing) {
+  const number = Number(path || 1);
+  const last = Math.max(
+    1,
+    Math.ceil(publications.length / (site.publicationsPerPage || 10))
+  );
+  if (!Number.isInteger(number) || number < 1 || number > last)
+    return new Response("Page not found", { status: 404 });
+} else if (!publication) return new Response("Publication not found", { status: 404 });
+---
+
+{
+  isListing ? (
+    <PublicationsPage />
+  ) : (
+    <PublicationDetail publication={publication} />
+  )
+}

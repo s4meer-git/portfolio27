@@ -1,0 +1,127 @@
+{
+  "collectionName": "components_portfolio_seo",
+  "info": {
+    "displayName": "Search & sharing",
+    "description": "Canonical domain, identity, page metadata, search indexing, AI discovery and redirects."
+  },
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "profile": {
+      "type": "string"
+    },
+    "desc": {
+      "type": "text"
+    },
+    "ogImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "favicon": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "language": {
+      "type": "string"
+    },
+    "canonicalOrigin": {
+      "type": "string"
+    },
+    "siteName": {
+      "type": "string"
+    },
+    "titleTemplate": {
+      "type": "string",
+      "default": "%s | %n"
+    },
+    "alternateNames": {
+      "type": "text"
+    },
+    "sameAs": {
+      "type": "text"
+    },
+    "ogImageAlt": {
+      "type": "string"
+    },
+    "twitterHandle": {
+      "type": "string"
+    },
+    "locale": {
+      "type": "string",
+      "default": "en_US"
+    },
+    "indexingEnabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "allowAiSearch": {
+      "type": "boolean",
+      "default": true
+    },
+    "allowAiTraining": {
+      "type": "boolean",
+      "default": true
+    },
+    "llmsEnabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "googleVerification": {
+      "type": "string"
+    },
+    "bingVerification": {
+      "type": "string"
+    },
+    "showDirectoryLinks": {
+      "type": "boolean",
+      "default": true
+    },
+    "aboutTitle": {
+      "type": "string",
+      "default": "About"
+    },
+    "domainsHeading": {
+      "type": "string",
+      "default": "Official websites"
+    },
+    "linksHeading": {
+      "type": "string",
+      "default": "Official profiles"
+    },
+    "sitemapTitle": {
+      "type": "string",
+      "default": "Site map"
+    },
+    "homeLabel": {
+      "type": "string",
+      "default": "Home"
+    },
+    "ownedDomains": {
+      "type": "component",
+      "component": "portfolio.owned-domain",
+      "repeatable": true
+    },
+    "pages": {
+      "type": "component",
+      "component": "portfolio.seo-page",
+      "repeatable": true
+    },
+    "redirects": {
+      "type": "component",
+      "component": "portfolio.seo-redirect",
+      "repeatable": true
+    }
+  }
+}

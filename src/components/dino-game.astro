@@ -1,0 +1,1763 @@
+---
+/**
+ * The Chrome offline dinosaur game, playable in the dotted strip above the profile.
+ *
+ * The sprite sheets in `public/dino/` come from the Chromium project (BSD 3-Clause),
+ * and the sprite coordinates, physics constants and collision boxes below are taken
+ * from its `offline.js` so the game behaves like the real one.
+ *
+ * The game thinks in the original 150px-tall coordinate space and is scaled to fit
+ * whatever height this strip is given, so the playfield gets wider (never taller) on
+ * bigger screens. The canvas is transparent, so the dotted pattern shows through.
+ */
+import Pattern from "@/components/ui/pattern.astro";
+
+interface Props {
+  /** Height of the playfield itself, in CSS pixels. */
+  height?: number;
+  /** Height of the control row beneath the playfield. */
+  gutter?: number;
+  className?: string;
+}
+
+const { height = 156, gutter = 22, className } = Astro.props;
+---
+
+<Pattern
+  className={`dino-strip ${className ?? ""}`}
+  style={`height:${height + gutter}px`}
+>
+  <div
+    class="dino-root absolute inset-0 overflow-hidden"
+    data-height={height}
+    role="application"
+    aria-label="Chrome dinosaur game. Press space or tap to jump, down arrow to duck."
+  >
+    <canvas
+      class="dino-canvas absolute inset-x-0 top-0 w-full"
+      style={`height:${height}px`}
+      tabindex="0"></canvas>
+    <p class="dino-hint sr-only">
+      <span class="dino-hint-start">
+        <span class="hidden sm:inline">Press spacebar to start</span>
+        <span class="sm:hidden">Tap to start</span>
+      </span>
+      <span class="dino-hint-restart">
+        <span class="hidden sm:inline">Press spacebar to play again</span>
+        <span class="sm:hidden">Tap to play again</span>
+      </span>
+    </p>
+
+    <div
+      class="dino-controls absolute right-2 bottom-0 flex items-center gap-1"
+      style={`height:${gutter}px`}
+    >
+      <button
+        type="button"
+        class="dino-toggle dino-keys font-mono"
+        aria-label="Use W and S keys to play"
+        aria-pressed="false"
+      >
+        WASD
+      </button>
+      <button
+        type="button"
+        class="dino-toggle dino-mute"
+        aria-label="Mute game sounds"
+        aria-pressed="false"
+      >
+        <svg
+          class="dino-mute-on size-3"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M11 5 6 9H2v6h4l5 4z"></path>
+          <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
+          <path d="M18.5 5.5a9 9 0 0 1 0 13"></path>
+        </svg>
+        <svg
+          class="dino-mute-off size-3"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M11 5 6 9H2v6h4l5 4z"></path>
+          <path d="m22 9-6 6"></path>
+          <path d="m16 9 6 6"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</Pattern>
+
+<style>
+  /* Lighten only the dots the game actually plays over.
+
+     The strip's dotted layer is deliberately full-bleed (-100vw to 100vw), so
+     fading it washes out the entire row and leaves a visible band either side of
+     the content column. Instead this scrim sits inside .dino-root, which is
+     inset-0 of the bordered column, so the bleed either side keeps matching every
+     other strip on the page. It paints above the pattern and below the canvas. */
+  .dino-root {
+    background: color-mix(in srgb, var(--color-background) 62%, transparent);
+  }
+
+  /* The artwork is a flat dark grey; softening it lets the scene read as part of the
+     page rather than a pasted-in widget. Inverting in dark mode keeps it legible,
+     and follows the site theme so the game's own night mode is covered too. */
+  .dino-canvas {
+    touch-action: manipulation;
+    outline: none;
+    opacity: 0.82;
+  }
+  :global(.dark) .dino-canvas {
+    filter: invert(1);
+    opacity: 0.75;
+  }
+  .dino-canvas:focus-visible {
+    outline: none;
+  }
+  .dino-root:focus-within {
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, currentColor 12%, transparent);
+  }
+  /* The prompt belongs to the idle and game-over states, so it is driven by the
+     live state rather than hidden for good after a first play. */
+  .dino-root[data-playing="true"] .dino-hint {
+    opacity: 0;
+  }
+  .dino-hint-restart,
+  .dino-root[data-state="crashed"] .dino-hint-start {
+    display: none;
+  }
+  .dino-root[data-state="crashed"] .dino-hint-restart {
+    display: inline;
+  }
+
+  /* Only one speaker icon shows at a time. */
+  .dino-mute-off,
+  .dino-root[data-muted="true"] .dino-mute-on {
+    display: none;
+  }
+  .dino-root[data-muted="true"] .dino-mute-off {
+    display: block;
+  }
+
+  /* The controls now live in their own row under the playfield, so they no longer
+     need to punch a hole in the horizon line to stay readable. */
+  .dino-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 16px;
+    padding: 0 0.3rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.25rem;
+    background: transparent;
+    font-size: 0.5625rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--color-muted-foreground);
+    cursor: pointer;
+    transition:
+      color 0.15s,
+      border-color 0.15s,
+      background-color 0.15s;
+  }
+  .dino-toggle:hover {
+    color: var(--color-foreground);
+    border-color: var(--color-foreground);
+  }
+  .dino-toggle:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 1px;
+  }
+  /* Hidden on phones, which have no keyboard to remap. This is a media query
+     rather than Tailwind's `hidden sm:flex`, because `.dino-toggle`'s own
+     `display` has equal specificity and wins on source order. */
+  .dino-keys {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .dino-keys {
+      display: flex;
+    }
+  }
+
+  /* "On" is filled in, so both toggles read their state the same way. */
+  .dino-toggle[aria-pressed="true"] {
+    color: var(--color-background);
+    background: var(--color-foreground);
+    border-color: var(--color-foreground);
+  }
+
+  .dino-root[data-playing="true"] .dino-hint {
+    opacity: 0;
+  }
+  .dino-hint-restart,
+  .dino-root[data-state="crashed"] .dino-hint-start {
+    display: none;
+  }
+  .dino-root[data-state="crashed"] .dino-hint-restart {
+    display: inline;
+  }
+
+  /* Only one speaker icon shows at a time. */
+  .dino-mute-off,
+  .dino-root[data-muted="true"] .dino-mute-on {
+    display: none;
+  }
+  .dino-root[data-muted="true"] .dino-mute-off {
+    display: block;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dino-canvas {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { setTheme } from "@/lib/theme";
+
+  // ---------------------------------------------------------------------------
+  // Definitions lifted from Chromium's offline.js so the game matches the real one.
+  // ---------------------------------------------------------------------------
+  const SPRITE_POS = {
+    LDPI: {
+      CACTUS_LARGE: { x: 332, y: 2 },
+      CACTUS_SMALL: { x: 228, y: 2 },
+      CLOUD: { x: 86, y: 2 },
+      HORIZON: { x: 2, y: 54 },
+      MOON: { x: 484, y: 2 },
+      PTERODACTYL: { x: 134, y: 2 },
+      RESTART: { x: 2, y: 2 },
+      TEXT_SPRITE: { x: 655, y: 2 },
+      TREX: { x: 848, y: 2 },
+      STAR: { x: 645, y: 2 },
+    },
+    HDPI: {
+      CACTUS_LARGE: { x: 652, y: 2 },
+      CACTUS_SMALL: { x: 446, y: 2 },
+      CLOUD: { x: 166, y: 2 },
+      HORIZON: { x: 2, y: 104 },
+      MOON: { x: 954, y: 2 },
+      PTERODACTYL: { x: 260, y: 2 },
+      RESTART: { x: 2, y: 2 },
+      TEXT_SPRITE: { x: 1294, y: 2 },
+      TREX: { x: 1678, y: 2 },
+      STAR: { x: 1276, y: 2 },
+    },
+  };
+
+  /** Audio shared by every game instance in this tab (see initAudio). */
+  let sharedAudio = null;
+
+  /** Repaint interval while nothing on the playfield is moving. */
+  const IDLE_FRAME_MS = 100;
+
+  const CONFIG = {
+    // Chromium uses 0.001, which only reaches top speed after ~2 minutes; most runs
+    // end long before that, so the game feels like it never speeds up. This reaches
+    // MAX_SPEED at roughly 600 points instead.
+    ACCELERATION: 0.0025,
+    BG_CLOUD_SPEED: 0.2,
+    BOTTOM_PAD: 10,
+    CLOUD_FREQUENCY: 0.5,
+    GAMEOVER_CLEAR_TIME: 750,
+    GAP_COEFFICIENT: 0.6,
+    GRAVITY: 0.6,
+    INITIAL_JUMP_VELOCITY: 12,
+    INVERT_FADE_DURATION: 12000,
+    INVERT_DISTANCE: 200,
+    MAX_BLINK_COUNT: 3,
+    MAX_CLOUDS: 6,
+    MAX_OBSTACLE_LENGTH: 3,
+    MAX_OBSTACLE_DUPLICATION: 2,
+    MAX_SPEED: 13,
+    MIN_JUMP_HEIGHT: 35,
+    MOBILE_SPEED_COEFFICIENT: 1.2,
+    SPEED: 6,
+    SPEED_DROP_COEFFICIENT: 3,
+  };
+
+  /** The game's own coordinate space, before it is scaled into the strip. */
+  const GAME_HEIGHT = 150;
+
+  /**
+   * The strip is tall enough for the whole 150px playfield, so nothing is cropped and
+   * every constant below is Chromium's own. A shorter strip would need VIEW_TOP raised
+   * and the decorations re-based into the remaining band.
+   */
+  const VIEW_TOP = 0;
+  const VIEW_HEIGHT = GAME_HEIGHT - VIEW_TOP;
+
+  const TREX = {
+    DROP_VELOCITY: -5,
+    GRAVITY: 0.6,
+    HEIGHT: 47,
+    HEIGHT_DUCK: 25,
+    INITIAL_JUMP_VELOCITY: -10,
+    // Absolute y the dino may not rise above, which is what cuts a held jump short.
+    MAX_JUMP_HEIGHT: VIEW_TOP + 30,
+    MIN_JUMP_HEIGHT: 30,
+    SPEED_DROP_COEFFICIENT: 3,
+    START_X_POS: 50,
+    WIDTH: 44,
+    WIDTH_DUCK: 59,
+    BLINK_TIMING: 7000,
+  };
+
+  const TREX_ANIM = {
+    WAITING: { frames: [44, 0], msPerFrame: 1000 / 3 },
+    RUNNING: { frames: [88, 132], msPerFrame: 1000 / 12 },
+    CRASHED: { frames: [220], msPerFrame: 1000 / 60 },
+    JUMPING: { frames: [0], msPerFrame: 1000 / 60 },
+    DUCKING: { frames: [264, 323], msPerFrame: 1000 / 8 },
+  };
+
+  const box = (x, y, w, h) => ({ x, y, width: w, height: h });
+
+  const TREX_BOXES = {
+    DUCKING: [box(1, 18, 55, 25)],
+    RUNNING: [
+      box(22, 0, 17, 16),
+      box(1, 18, 30, 9),
+      box(10, 35, 14, 8),
+      box(1, 24, 29, 5),
+      box(5, 30, 21, 4),
+      box(9, 34, 15, 4),
+    ],
+  };
+
+  const OBSTACLES = [
+    {
+      type: "CACTUS_SMALL",
+      width: 17,
+      height: 35,
+      yPos: 105,
+      multipleSpeed: 4,
+      minGap: 120,
+      minSpeed: 0,
+      collisionBoxes: [box(0, 7, 5, 27), box(4, 0, 6, 34), box(10, 4, 7, 14)],
+    },
+    {
+      type: "CACTUS_LARGE",
+      width: 25,
+      height: 50,
+      yPos: 90,
+      multipleSpeed: 7,
+      minGap: 120,
+      minSpeed: 0,
+      collisionBoxes: [
+        box(0, 12, 7, 38),
+        box(8, 0, 7, 49),
+        box(13, 10, 10, 38),
+      ],
+    },
+    {
+      type: "PTERODACTYL",
+      width: 46,
+      height: 40,
+      yPos: [100, 75, 50],
+      yPosMobile: [100, 50],
+      multipleSpeed: 999,
+      minSpeed: 8.5,
+      minGap: 150,
+      collisionBoxes: [
+        box(15, 15, 16, 5),
+        box(18, 21, 24, 6),
+        box(2, 14, 4, 3),
+        box(6, 10, 4, 7),
+        box(10, 8, 6, 9),
+      ],
+      numFrames: 2,
+      frameRate: 1000 / 6,
+      speedOffset: 0.8,
+    },
+  ];
+
+  const CLOUD = {
+    HEIGHT: 14,
+    MAX_CLOUD_GAP: 400,
+    MAX_SKY_LEVEL: VIEW_TOP + 30,
+    MIN_CLOUD_GAP: 100,
+    MIN_SKY_LEVEL: VIEW_TOP + 71,
+    WIDTH: 46,
+  };
+
+  const HORIZON = { WIDTH: 600, HEIGHT: 12, YPOS: 127 };
+
+  const NIGHT = {
+    FADE_SPEED: 0.035,
+    HEIGHT: 40,
+    MOON_SPEED: 0.25,
+    NUM_STARS: 2,
+    STAR_SIZE: 9,
+    STAR_SPEED: 0.3,
+    STAR_MAX_Y: 70,
+    WIDTH: 20,
+    PHASES: [140, 120, 100, 60, 40, 20, 0],
+  };
+
+  const METER = {
+    WIDTH: 10,
+    HEIGHT: 13,
+    DEST_WIDTH: 11,
+    MAX_DISTANCE_UNITS: 5,
+    ACHIEVEMENT_DISTANCE: 100,
+    COEFFICIENT: 0.025,
+    FLASH_DURATION: 1000 / 4,
+    FLASH_ITERATIONS: 3,
+  };
+
+  const PANEL = {
+    TEXT_X: 0,
+    TEXT_Y: 13,
+    TEXT_WIDTH: 191,
+    TEXT_HEIGHT: 11,
+    RESTART_WIDTH: 36,
+    RESTART_HEIGHT: 32,
+  };
+
+  /**
+   * A pixel alphabet in the sprite sheet's own style.
+   *
+   * Chromium's sheet only carries the digits, "HI" and the GAME OVER wordmark, so
+   * there is no alphabet to spell a prompt with. G, A, M, E, O, V and R are traced
+   * pixel-for-pixel from that wordmark, H and I from the score font, and the
+   * remaining letters are drawn to match: 11x11 cells, 3px strokes, two-row bars.
+   */
+  const GLYPH_W = 11;
+  const GLYPH_H = 11;
+  const GLYPH_PITCH = 24;
+
+  // prettier-ignore
+  const FONT = {
+    A: ["...#####...", "...#####...", "..###.###..", "###.....###", "###.....###",
+        "###.....###", "###########", "###########", "###.....###", "###.....###", "###.....###"],
+    B: ["#########..", "#########..", "###.....###", "###.....###", "###.....###",
+        "#########..", "#########..", "###.....###", "###.....###", "#########..", "#########.."],
+    C: ["..#######..", "..#######..", "###.....###", "###........", "###........",
+        "###........", "###........", "###........", "###.....###", "..#######..", "..#######.."],
+    E: ["###########", "###########", "###........", "###........", "###........",
+        "#########..", "###........", "###........", "###........", "###########", "###########"],
+    G: ["...########", "...########", "..###......", "###........", "###........",
+        "###...#####", "###.....###", "###.....###", "..###...###", "...########", "...########"],
+    H: ["###.....###", "###.....###", "###.....###", "###.....###", "###########",
+        "###########", "###.....###", "###.....###", "###.....###", "###.....###", "###.....###"],
+    I: ["#########..", "#########..", "...###.....", "...###.....", "...###.....",
+        "...###.....", "...###.....", "...###.....", "...###.....", "#########..", "#########.."],
+    M: ["###.....###", "###.....###", "#####.#####", "###########", "###########",
+        "###########", "###..#..###", "###..#..###", "###.....###", "###.....###", "###.....###"],
+    O: ["..#######..", "..#######..", "###.....###", "###.....###", "###.....###",
+        "###.....###", "###.....###", "###.....###", "###.....###", "..#######..", "..#######.."],
+    P: ["#########..", "#########..", "###.....###", "###.....###", "###.....###",
+        "###.....###", "#########..", "#########..", "###........", "###........", "###........"],
+    R: ["#########..", "#########..", "###.....###", "###.....###", "###.....###",
+        "###...#####", "########...", "########...", "###..####..", "###...#####", "###...#####"],
+    S: ["..#########", "..#########", "###........", "###........", "###........",
+        "..#######..", "..#######..", "........###", "........###", "#########..", "#########.."],
+    T: ["###########", "###########", "....###....", "....###....", "....###....",
+        "....###....", "....###....", "....###....", "....###....", "....###....", "....###...."],
+    V: ["###.....###", "###.....###", "###.....###", "###.....###", "###.....###",
+        "#####.#####", "..#######..", "..#######..", "...#####...", ".....#.....", ".....#....."],
+    " ": [],
+  };
+
+  /** Width in game units of a string rendered in the pixel font. */
+  const textWidth = text => text.length * GLYPH_PITCH - (GLYPH_PITCH - GLYPH_W);
+
+  const HIGH_SCORE_KEY = "dino-high-score";
+  const SOUNDS = ["jump", "hit", "score"];
+  const MUTED_KEY = "dino-muted";
+  const KEYS_KEY = "dino-wasd";
+
+  const randomNum = (min, max) =>
+    Math.floor(Math.random() * (max - min + 1)) + min;
+
+  /** Axis-aligned overlap test between two collision boxes. */
+  function boxesIntersect(a, b) {
+    return (
+      a.x < b.x + b.width &&
+      a.x + a.width > b.x &&
+      a.y < b.y + b.height &&
+      a.height + a.y > b.y
+    );
+  }
+
+  /** Shifts a sprite-space collision box into world space. */
+  function adjustBox(source, target) {
+    return box(
+      source.x + target.x,
+      source.y + target.y,
+      source.width,
+      source.height
+    );
+  }
+
+  class DinoGame {
+    constructor(root) {
+      this.root = root;
+      this.canvas = root.querySelector(".dino-canvas");
+      this.ctx = this.canvas.getContext("2d");
+      this.stripHeight = Number(root.dataset.height) || 78;
+
+      this.spriteDef = SPRITE_POS.LDPI;
+      this.spriteImage = null;
+
+      this.playing = false;
+      this.crashed = false;
+      this.activated = false;
+      this.paused = false;
+      this.raf = null;
+
+      this.time = 0;
+      this.runningTime = 0;
+      this.msPerFrame = 1000 / 60;
+      this.currentSpeed = CONFIG.SPEED;
+      this.distanceRan = 0;
+      this.highestScore = this.readHighScore();
+
+      this.obstacles = [];
+      this.clouds = [];
+      this.obstacleHistory = [];
+
+      this.inverted = false;
+      this.lastInvertMilestone = 0;
+      this.nightOpacity = 0;
+      this.nightXPos = 0;
+      this.nightPhase = NIGHT.PHASES.length - 1;
+      this.stars = [];
+
+      this.meterDigits = [];
+      this.meterFlash = 0;
+      this.meterFlashIterations = 0;
+      this.meterPaint = true;
+      this.flashing = false;
+      this.lastMilestone = 0;
+
+      this.listeners = [];
+      this.onFrame = this.frame.bind(this);
+
+      this.sounds = {};
+      this.muted = this.readPref(MUTED_KEY);
+      this.wasd = this.readPref(KEYS_KEY);
+      root.dataset.muted = String(this.muted);
+      root.dataset.state = "waiting";
+
+      this.loadSprite();
+    }
+
+    // --- setup ---------------------------------------------------------------
+
+    loadSprite() {
+      const hidpi = window.devicePixelRatio > 1;
+      this.spriteDef = hidpi ? SPRITE_POS.HDPI : SPRITE_POS.LDPI;
+      this.spriteScale = hidpi ? 2 : 1;
+      const image = new Image();
+      image.decoding = "async";
+      image.src = hidpi ? "/dino/sprite-2x.png" : "/dino/sprite-1x.png";
+      image.onload = () => {
+        this.spriteImage = image;
+        this.init();
+      };
+    }
+
+    init() {
+      this.resize();
+      this.trex = this.createTrex();
+      this.buildHorizon();
+      this.bindEvents();
+      this.initAudio();
+      this.draw();
+      this.startLoop();
+    }
+
+    /**
+     * The strip is short and wide, so the game is scaled by height and the playfield
+     * simply becomes wider in game units. Everything below works in those units.
+     */
+    resize() {
+      const rect = this.canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const cssWidth = Math.max(rect.width, 1);
+      const cssHeight = Math.max(rect.height, 1);
+
+      this.canvas.width = Math.round(cssWidth * dpr);
+      this.canvas.height = Math.round(cssHeight * dpr);
+
+      this.scale = cssHeight / VIEW_HEIGHT;
+      this.worldWidth = cssWidth / this.scale;
+      this.worldHeight = GAME_HEIGHT;
+
+      // One transform maps game units -> device pixels, with the cropped band above
+      // VIEW_TOP shifted off the top of the canvas.
+      const k = dpr * this.scale;
+      this.ctx.setTransform(k, 0, 0, k, 0, -VIEW_TOP * k);
+      this.ctx.imageSmoothingEnabled = false;
+
+      this.isSmall = cssWidth < 480;
+      this.isTouch = window.matchMedia("(hover: none)").matches;
+    }
+
+    /** Enough ground segments to cover the playfield, however wide it ends up. */
+    buildHorizon() {
+      const needed = Math.ceil(this.worldWidth / HORIZON.WIDTH) + 1;
+      this.horizonLines = [];
+      for (let i = 0; i < needed; i++) {
+        this.horizonLines.push({
+          sourceX: i % 2 === 0 ? 0 : HORIZON.WIDTH,
+          xPos: i * HORIZON.WIDTH,
+        });
+      }
+    }
+
+    createTrex() {
+      return {
+        xPos: TREX.START_X_POS,
+        yPos: 0,
+        groundYPos: 0,
+        currentFrame: 0,
+        currentAnimFrames: TREX_ANIM.WAITING.frames,
+        blinkDelay: 0,
+        blinkCount: 0,
+        animStartTime: 0,
+        timer: 0,
+        msPerFrame: TREX_ANIM.WAITING.msPerFrame,
+        status: "WAITING",
+        jumping: false,
+        ducking: false,
+        jumpVelocity: 0,
+        reachedMinHeight: false,
+        speedDrop: false,
+        jumpCount: 0,
+        minJumpHeight: 0,
+      };
+    }
+
+    // --- input ---------------------------------------------------------------
+
+    on(target, type, handler, options) {
+      target.addEventListener(type, handler, options);
+      this.listeners.push([target, type, handler, options]);
+    }
+
+    bindEvents() {
+      this.on(window, "resize", () => {
+        this.resize();
+        this.buildHorizon();
+        this.placeTrex();
+        if (!this.playing) this.draw();
+      });
+
+      this.on(document, "keydown", e => this.onKeyDown(e));
+      this.on(document, "keyup", e => this.onKeyUp(e));
+
+      // Pointer: tap the strip to start or jump; the lower half ducks while held.
+      this.setMuted(this.muted);
+      this.setWasd(this.wasd);
+
+      const mute = this.root.querySelector(".dino-mute");
+      if (mute) {
+        this.on(mute, "pointerdown", e => e.stopPropagation());
+        this.on(mute, "click", e => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.resumeAudio();
+          this.setMuted(!this.muted);
+          if (!this.muted) this.playSound("jump");
+        });
+      }
+
+      const keys = this.root.querySelector(".dino-keys");
+      if (keys) {
+        this.on(keys, "pointerdown", e => e.stopPropagation());
+        this.on(keys, "click", e => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.setWasd(!this.wasd);
+        });
+      }
+
+      this.on(this.canvas, "pointerdown", e => {
+        e.preventDefault();
+        this.resumeAudio();
+        this.canvas.focus();
+        const local = this.toWorld(e);
+        if (this.crashed) {
+          if (this.time - this.crashTime >= CONFIG.GAMEOVER_CLEAR_TIME)
+            this.restart();
+          return;
+        }
+        if (local.y > this.worldHeight * 0.6 && this.playing) this.startDuck();
+        else this.startJump();
+      });
+      this.on(this.canvas, "pointerup", () => {
+        this.endJump();
+        this.endDuck();
+      });
+      this.on(this.canvas, "pointercancel", () => {
+        this.endJump();
+        this.endDuck();
+      });
+      this.on(this.canvas, "contextmenu", e => e.preventDefault());
+
+      // Pause when the strip scrolls out of view or the tab is hidden.
+      this.observer = new IntersectionObserver(
+        entries => {
+          this.visible = entries[0].isIntersecting;
+          if (!this.visible) this.stopLoop();
+          else this.startLoop();
+        },
+        { threshold: 0.5 }
+      );
+      this.observer.observe(this.root);
+      this.on(document, "visibilitychange", () => {
+        if (document.hidden) this.stopLoop();
+        else this.startLoop();
+      });
+    }
+
+    toWorld(event) {
+      const rect = this.canvas.getBoundingClientRect();
+      return {
+        x: (event.clientX - rect.left) / this.scale,
+        y: (event.clientY - rect.top) / this.scale,
+      };
+    }
+
+    /**
+     * Keys only count when the strip has focus, or while a game is already running,
+     * so space and the arrow keys keep scrolling the page everywhere else.
+     */
+    ownsKeyboard(event) {
+      // Never take keys meant for a text field or an open dialog (the command menu).
+      const target = event?.target;
+      if (
+        target instanceof Element &&
+        target.closest("input, textarea, select, [contenteditable], [role=dialog]")
+      )
+        return false;
+      return this.visible !== false;
+    }
+
+    onKeyDown(e) {
+      if (!this.ownsKeyboard(e)) return;
+      this.resumeAudio();
+      const jump =
+        e.code === "Space" ||
+        e.code === "ArrowUp" ||
+        (this.wasd && e.code === "KeyW");
+      const duck = e.code === "ArrowDown" || (this.wasd && e.code === "KeyS");
+      if (!jump && !duck && e.code !== "Enter") return;
+      e.preventDefault();
+
+      if (this.crashed) {
+        if (
+          (e.code === "Enter" || jump) &&
+          this.time - this.crashTime >= CONFIG.GAMEOVER_CLEAR_TIME
+        ) {
+          this.restart();
+        }
+        return;
+      }
+      if (jump) this.startJump();
+      else if (duck) this.startDuck();
+    }
+
+    onKeyUp(e) {
+      if (!this.ownsKeyboard(e)) return;
+      if (
+        e.code === "Space" ||
+        e.code === "ArrowUp" ||
+        (this.wasd && e.code === "KeyW")
+      ) {
+        this.endJump();
+      }
+      if (e.code === "ArrowDown" || (this.wasd && e.code === "KeyS"))
+        this.endDuck();
+    }
+
+    startJump() {
+      if (this.crashed) return;
+      if (!this.playing) this.play();
+      const trex = this.trex;
+      if (!trex.jumping && !trex.ducking) {
+        this.playSound("jump");
+        trex.jumping = true;
+        trex.status = "JUMPING";
+        this.setTrexAnim("JUMPING");
+        trex.jumpVelocity = TREX.INITIAL_JUMP_VELOCITY - this.currentSpeed / 10;
+        trex.reachedMinHeight = false;
+        trex.speedDrop = false;
+      }
+    }
+
+    endJump() {
+      const trex = this.trex;
+      if (trex.reachedMinHeight && trex.jumpVelocity < TREX.DROP_VELOCITY) {
+        trex.jumpVelocity = TREX.DROP_VELOCITY;
+      }
+    }
+
+    startDuck() {
+      if (!this.playing || this.crashed) return;
+      const trex = this.trex;
+      if (trex.jumping) {
+        // Dropping out of a jump, exactly like holding down in Chrome.
+        trex.speedDrop = true;
+        trex.ducking = false;
+      } else if (!trex.jumping) {
+        trex.ducking = true;
+        this.setTrexAnim("DUCKING");
+      }
+    }
+
+    endDuck() {
+      const trex = this.trex;
+      trex.speedDrop = false;
+      if (trex.ducking) {
+        trex.ducking = false;
+        this.setTrexAnim("RUNNING");
+      }
+    }
+
+    setTrexAnim(status) {
+      const trex = this.trex;
+      trex.status = status;
+      trex.currentAnimFrames = TREX_ANIM[status].frames;
+      trex.msPerFrame = TREX_ANIM[status].msPerFrame;
+      trex.currentFrame = 0;
+    }
+
+    // --- lifecycle -----------------------------------------------------------
+
+    play() {
+      if (this.crashed) return;
+      this.playing = true;
+      this.activated = true;
+      this.root.dataset.playing = "true";
+      this.root.dataset.state = "playing";
+      this.syncNightToTheme();
+      this.setTrexAnim("RUNNING");
+      this.runningTime = 0;
+      this.startLoop();
+    }
+
+    /**
+     * Starts a run in whichever mode the site is already in, so a visitor reading in
+     * dark mode gets a night run with the moon out rather than a mismatch between the
+     * inverted sprites and a game that thinks it is daytime.
+     */
+    syncNightToTheme() {
+      const dark = document.documentElement.classList.contains("dark");
+      this.inverted = dark;
+      this.nightOpacity = dark ? 1 : 0;
+      this.nightPhase = NIGHT.PHASES.length - 1;
+      this.stars = [];
+      if (dark) this.spawnStars();
+    }
+
+    spawnStars() {
+      this.stars = [];
+      for (let i = 0; i < NIGHT.NUM_STARS; i++) {
+        this.stars.push({
+          x: randomNum(0, Math.round(this.worldWidth)),
+          y:
+            VIEW_TOP +
+            2 +
+            (Math.random() * NIGHT.STAR_MAX_Y) / NIGHT.NUM_STARS / 2 +
+            i * (NIGHT.STAR_MAX_Y / NIGHT.NUM_STARS / 2),
+          sourceY:
+            this.spriteDef.STAR.y +
+            NIGHT.STAR_SIZE * this.spriteScale * randomNum(0, 3),
+        });
+      }
+      this.nightXPos = this.worldWidth - NIGHT.WIDTH;
+    }
+
+    restart() {
+      this.crashed = false;
+      this.playing = true;
+      this.runningTime = 0;
+      this.currentSpeed = CONFIG.SPEED;
+      this.distanceRan = 0;
+      this.obstacles = [];
+      this.obstacleHistory = [];
+      this.clouds = [];
+      this.meterFlashIterations = 0;
+      this.meterFlash = 0;
+      this.meterPaint = true;
+      this.flashing = false;
+      this.lastMilestone = 0;
+      this.lastInvertMilestone = 0;
+      this.syncNightToTheme();
+      this.trex = this.createTrex();
+      this.placeTrex();
+      this.setTrexAnim("RUNNING");
+      this.root.dataset.playing = "true";
+      this.root.dataset.state = "playing";
+      this.startLoop();
+    }
+
+    gameOver() {
+      this.playing = false;
+      this.crashed = true;
+      this.crashTime = this.time;
+      this.root.dataset.playing = "false";
+      this.root.dataset.state = "crashed";
+      this.playSound("hit");
+      this.setTrexAnim("CRASHED");
+      const score = Math.round(this.distanceRan * METER.COEFFICIENT);
+      if (score > this.highestScore) {
+        this.highestScore = score;
+        this.writeHighScore(score);
+      }
+    }
+
+    placeTrex() {
+      const trex = this.trex;
+      if (!trex) return;
+      trex.groundYPos = GAME_HEIGHT - TREX.HEIGHT - CONFIG.BOTTOM_PAD;
+      if (!trex.jumping) trex.yPos = trex.groundYPos;
+      trex.minJumpHeight = trex.groundYPos - TREX.MIN_JUMP_HEIGHT;
+    }
+
+    startLoop() {
+      if (!this.spriteImage) return;
+      if (this.visible === false || document.hidden) return;
+      // Waking from the idle tick: go straight to the next frame, so the first
+      // jump responds immediately instead of waiting for the slow idle timer.
+      if (this.idleTimer) {
+        clearTimeout(this.idleTimer);
+        this.idleTimer = null;
+      }
+      if (this.raf) return;
+      this.lastTime = performance.now();
+      this.raf = requestAnimationFrame(this.onFrame);
+    }
+
+    stopLoop() {
+      if (this.raf) cancelAnimationFrame(this.raf);
+      if (this.idleTimer) clearTimeout(this.idleTimer);
+      this.raf = null;
+      this.idleTimer = null;
+    }
+
+    /**
+     * Nothing moves between the waiting dino's blinks or on the game-over screen,
+     * so those states repaint a few times a second instead of every frame. That
+     * keeps the canvas off the main thread while the visitor scrolls the page.
+     */
+    isIdle() {
+      return !this.playing && !this.trex?.jumping && !this.flashing;
+    }
+
+    frame(now) {
+      this.raf = null;
+      const idle = this.isIdle();
+      const delta = Math.min(now - this.lastTime, idle ? 250 : 1000 / 20);
+      this.lastTime = now;
+      this.time = now;
+      this.update(delta);
+      this.draw();
+      if (this.isIdle()) {
+        this.idleTimer = setTimeout(() => {
+          this.idleTimer = null;
+          this.raf = requestAnimationFrame(this.onFrame);
+        }, IDLE_FRAME_MS);
+      } else {
+        this.raf = requestAnimationFrame(this.onFrame);
+      }
+    }
+
+    // --- update --------------------------------------------------------------
+
+    update(delta) {
+      if (!this.trex) return;
+      this.placeTrex();
+      this.updateTrex(delta);
+
+      if (!this.playing) return;
+
+      this.runningTime += delta;
+      const hasObstacles = this.runningTime > 500;
+
+      this.updateClouds(delta);
+      this.updateHorizon(delta);
+      if (hasObstacles) this.updateObstacles(delta);
+      this.updateNight(delta);
+
+      this.distanceRan += (this.currentSpeed * delta) / this.msPerFrame;
+      if (this.currentSpeed < CONFIG.MAX_SPEED) {
+        this.currentSpeed += CONFIG.ACCELERATION;
+      }
+
+      const score = Math.round(this.distanceRan * METER.COEFFICIENT);
+
+      // Night mode flips every INVERT_DISTANCE points and drags the site with it.
+      // Tracking the milestone rather than gating on a fade timer matters now the
+      // game accelerates: at speed 13 a 200-point stretch passes in under the
+      // 12-second fade, and a timer-based guard silently swallows those flips.
+      const invertMilestone = Math.floor(score / CONFIG.INVERT_DISTANCE);
+      if (score > 0 && invertMilestone > this.lastInvertMilestone) {
+        this.lastInvertMilestone = invertMilestone;
+        this.setInverted(!this.inverted);
+      }
+
+      this.updateMeter(delta, score);
+    }
+
+    updateTrex(delta) {
+      const trex = this.trex;
+      trex.timer += delta;
+
+      if (trex.jumping) {
+        trex.yPos += Math.round(trex.jumpVelocity * (delta / this.msPerFrame));
+        trex.jumpVelocity += TREX.GRAVITY * (delta / this.msPerFrame);
+        if (trex.speedDrop) {
+          trex.yPos += Math.abs(TREX.DROP_VELOCITY) * (delta / this.msPerFrame);
+        }
+        if (trex.yPos < trex.minJumpHeight || trex.speedDrop)
+          trex.reachedMinHeight = true;
+        // Hitting the ceiling ends the ascent, so holding the key jumps no higher.
+        if (trex.yPos < TREX.MAX_JUMP_HEIGHT || trex.speedDrop) this.endJump();
+        if (trex.yPos < VIEW_TOP) {
+          trex.yPos = VIEW_TOP;
+          if (trex.jumpVelocity < 0) trex.jumpVelocity = 0;
+        }
+        if (trex.yPos >= trex.groundYPos) {
+          trex.yPos = trex.groundYPos;
+          trex.jumping = false;
+          trex.jumpVelocity = 0;
+          trex.speedDrop = false;
+          trex.jumpCount++;
+          this.setTrexAnim(this.playing ? "RUNNING" : "WAITING");
+        }
+      }
+
+      // Idle blink, as in the real game.
+      if (trex.status === "WAITING") {
+        if (!trex.blinkDelay)
+          trex.blinkDelay = Math.ceil(Math.random() * TREX.BLINK_TIMING);
+        if (trex.timer >= trex.blinkDelay) {
+          trex.currentFrame = trex.currentFrame === 0 ? 1 : 0;
+          trex.timer = 0;
+          trex.blinkDelay = Math.ceil(Math.random() * TREX.BLINK_TIMING);
+        }
+        return;
+      }
+
+      if (trex.timer >= trex.msPerFrame) {
+        trex.currentFrame =
+          trex.currentFrame === trex.currentAnimFrames.length - 1
+            ? 0
+            : trex.currentFrame + 1;
+        trex.timer = 0;
+      }
+    }
+
+    updateClouds(delta) {
+      const speed = Math.ceil(
+        (CONFIG.BG_CLOUD_SPEED * this.currentSpeed * delta) / this.msPerFrame
+      );
+      for (const cloud of this.clouds) cloud.xPos -= speed;
+      this.clouds = this.clouds.filter(c => c.xPos + CLOUD.WIDTH > 0);
+
+      const last = this.clouds[this.clouds.length - 1];
+      if (
+        this.clouds.length < CONFIG.MAX_CLOUDS &&
+        (!last || this.worldWidth - last.xPos > last.gap) &&
+        CONFIG.CLOUD_FREQUENCY > Math.random()
+      ) {
+        this.clouds.push({
+          xPos: this.worldWidth,
+          yPos: randomNum(CLOUD.MAX_SKY_LEVEL, CLOUD.MIN_SKY_LEVEL),
+          gap: randomNum(CLOUD.MIN_CLOUD_GAP, CLOUD.MAX_CLOUD_GAP),
+        });
+      }
+    }
+
+    updateHorizon(delta) {
+      const increment = Math.floor(
+        this.currentSpeed * (delta / this.msPerFrame)
+      );
+      for (const line of this.horizonLines) line.xPos -= increment;
+
+      // Recycle any segment that has scrolled off the left to the end of the chain.
+      const rightmost = () =>
+        this.horizonLines.reduce((m, l) => Math.max(m, l.xPos), -Infinity);
+      for (const line of this.horizonLines) {
+        if (line.xPos <= -HORIZON.WIDTH) {
+          line.xPos = rightmost() + HORIZON.WIDTH;
+          line.sourceX = Math.random() > 0.5 ? HORIZON.WIDTH : 0;
+        }
+      }
+    }
+
+    updateObstacles(delta) {
+      for (const obstacle of this.obstacles) {
+        const speed = this.currentSpeed + obstacle.speedOffset;
+        obstacle.xPos -= Math.floor((speed * delta) / this.msPerFrame);
+        if (obstacle.numFrames) {
+          obstacle.frameTimer += delta;
+          if (obstacle.frameTimer >= obstacle.frameRate) {
+            obstacle.currentFrame =
+              (obstacle.currentFrame + 1) % obstacle.numFrames;
+            obstacle.frameTimer = 0;
+          }
+        }
+      }
+      this.obstacles = this.obstacles.filter(o => o.xPos + o.width > 0);
+
+      const last = this.obstacles[this.obstacles.length - 1];
+      if (!last || last.xPos + last.width + last.gap < this.worldWidth) {
+        this.addObstacle();
+      }
+
+      for (const obstacle of this.obstacles) {
+        if (this.collides(obstacle)) {
+          this.gameOver();
+          return;
+        }
+      }
+    }
+
+    addObstacle() {
+      const available = OBSTACLES.filter(t => this.currentSpeed >= t.minSpeed);
+      if (!available.length) return;
+      const type = available[randomNum(0, available.length - 1)];
+
+      // Never show the same obstacle more than twice in a row.
+      if (this.duplicateObstacle(type.type)) return;
+
+      const size =
+        type.multipleSpeed > this.currentSpeed
+          ? 1
+          : randomNum(1, CONFIG.MAX_OBSTACLE_LENGTH);
+
+      const yPos = Array.isArray(type.yPos)
+        ? (this.isSmall && type.yPosMobile ? type.yPosMobile : type.yPos)[
+            randomNum(
+              0,
+              (this.isSmall && type.yPosMobile ? type.yPosMobile : type.yPos)
+                .length - 1
+            )
+          ]
+        : type.yPos;
+
+      const obstacle = {
+        type: type.type,
+        width: type.width * size,
+        spriteWidth: type.width,
+        height: type.height,
+        size,
+        xPos: this.worldWidth,
+        yPos,
+        collisionBoxes: type.collisionBoxes.map(b =>
+          box(b.x, b.y, b.width, b.height)
+        ),
+        // Added to the game speed, so a bird drifts slightly faster or slower than
+        // the ground scrolls. Cacti have no offset and move with the ground.
+        speedOffset: type.speedOffset
+          ? Math.random() > 0.5
+            ? type.speedOffset
+            : -type.speedOffset
+          : 0,
+        numFrames: type.numFrames,
+        frameRate: type.frameRate,
+        currentFrame: 0,
+        frameTimer: 0,
+        gap: 0,
+      };
+      // Widen the last collision box to cover a group of cacti.
+      if (size > 1) {
+        obstacle.collisionBoxes[1].width =
+          obstacle.width -
+          obstacle.collisionBoxes[0].width -
+          obstacle.collisionBoxes[2].width;
+        obstacle.collisionBoxes[2].x =
+          obstacle.width - obstacle.collisionBoxes[2].width;
+      }
+
+      obstacle.gap = this.gapFor(type.minGap, obstacle.width);
+      this.obstacles.push(obstacle);
+
+      this.obstacleHistory.unshift(type.type);
+      if (this.obstacleHistory.length > 1) {
+        this.obstacleHistory.splice(CONFIG.MAX_OBSTACLE_DUPLICATION);
+      }
+    }
+
+    duplicateObstacle(type) {
+      return (
+        this.obstacleHistory.length >= CONFIG.MAX_OBSTACLE_DUPLICATION &&
+        this.obstacleHistory
+          .slice(0, CONFIG.MAX_OBSTACLE_DUPLICATION)
+          .every(t => t === type)
+      );
+    }
+
+    gapFor(minGap, width) {
+      const minimum = Math.round(
+        width * this.currentSpeed + minGap * CONFIG.GAP_COEFFICIENT
+      );
+      return randomNum(minimum, Math.round(minimum * 1.5));
+    }
+
+    collides(obstacle) {
+      const trex = this.trex;
+      const trexBox = box(
+        trex.xPos + 1,
+        trex.yPos + 1,
+        (trex.ducking ? TREX.WIDTH_DUCK : TREX.WIDTH) - 2,
+        TREX.HEIGHT - 2
+      );
+      const obstacleBox = box(
+        obstacle.xPos + 1,
+        obstacle.yPos + 1,
+        obstacle.width - 2,
+        obstacle.height - 2
+      );
+      if (!boxesIntersect(trexBox, obstacleBox)) return false;
+
+      const trexBoxes = trex.ducking ? TREX_BOXES.DUCKING : TREX_BOXES.RUNNING;
+      for (const tb of trexBoxes) {
+        for (const ob of obstacle.collisionBoxes) {
+          if (
+            boxesIntersect(adjustBox(tb, trexBox), adjustBox(ob, obstacleBox))
+          )
+            return true;
+        }
+      }
+      return false;
+    }
+
+    updateNight(delta) {
+      if (this.inverted && this.nightOpacity < 1) {
+        this.nightOpacity = Math.min(1, this.nightOpacity + NIGHT.FADE_SPEED);
+      } else if (!this.inverted && this.nightOpacity > 0) {
+        this.nightOpacity = Math.max(0, this.nightOpacity - NIGHT.FADE_SPEED);
+      }
+      if (this.nightOpacity === 0) return;
+
+      this.nightXPos -= (NIGHT.MOON_SPEED * delta) / this.msPerFrame;
+      if (this.nightXPos < -NIGHT.WIDTH * 2) {
+        this.nightXPos = this.worldWidth;
+        this.nightPhase = (this.nightPhase + 1) % NIGHT.PHASES.length;
+      }
+      for (const star of this.stars) {
+        star.x -= (NIGHT.STAR_SPEED * delta) / this.msPerFrame;
+        if (star.x < -NIGHT.STAR_SIZE) star.x = this.worldWidth;
+      }
+    }
+
+    setInverted(inverted) {
+      this.inverted = inverted;
+      if (inverted && !this.stars.length) this.spawnStars();
+      this.applyTheme(inverted);
+    }
+
+    /** Night mode uses the same animated theme change as the header toggle. */
+    applyTheme(dark) {
+      void setTheme(dark ? "dark" : "light");
+    }
+
+    updateMeter(delta, score) {
+      this.meterDigits = String(score)
+        .padStart(METER.MAX_DISTANCE_UNITS, "0")
+        .split("");
+
+      // Every 100 points the score blinks three times, as in the real game.
+      const milestone = Math.floor(score / METER.ACHIEVEMENT_DISTANCE);
+      if (score > 0 && milestone > this.lastMilestone) {
+        this.lastMilestone = milestone;
+        this.playSound("score");
+        this.meterFlashIterations = 0;
+        this.meterFlash = 0;
+        this.flashing = true;
+      }
+
+      if (this.flashing) {
+        this.meterFlash += delta;
+        if (this.meterFlash >= METER.FLASH_DURATION) {
+          this.meterFlash = 0;
+          this.meterPaint = !this.meterPaint;
+          if (this.meterPaint) {
+            this.meterFlashIterations++;
+            if (this.meterFlashIterations >= METER.FLASH_ITERATIONS)
+              this.flashing = false;
+          }
+        }
+      } else {
+        this.meterPaint = true;
+      }
+    }
+
+    /**
+     * Web Audio is used rather than <audio> elements because the jump sound has to
+     * fire the instant a key lands, and it has to be able to overlap itself. The
+     * context can only be created from a user gesture, so this is called from the
+     * first keypress or tap.
+     */
+    initAudio() {
+      if (this.audioCtx) return;
+      // One context and one set of decoded sounds for the whole visit. The game is
+      // rebuilt on every return to the home page; it used to download and decode the
+      // sounds again each time and leave another AudioContext behind.
+      if (!sharedAudio) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        // A context may be constructed without a gesture; it simply starts suspended
+        // and is resumed by resumeAudio() on the first real input.
+        sharedAudio = { ctx: new Ctx(), sounds: {} };
+
+        // Chromium ships these as Ogg Vorbis, which Safari could not play until 17,
+        // so an AAC copy sits alongside them.
+        const probe = document.createElement("audio");
+        const ext = probe.canPlayType('audio/ogg; codecs="vorbis"')
+          ? "ogg"
+          : "m4a";
+
+        for (const name of SOUNDS) {
+          const audio = sharedAudio;
+          fetch(`/dino/${name}.${ext}`)
+            .then(res => res.arrayBuffer())
+            .then(buf => audio.ctx.decodeAudioData(buf))
+            .then(decoded => {
+              audio.sounds[name] = decoded;
+            })
+            .catch(() => {
+              // A missing or undecodable sound must never stop the game.
+            });
+        }
+      }
+      this.audioCtx = sharedAudio.ctx;
+      this.sounds = sharedAudio.sounds;
+    }
+
+    /** Browsers only allow audio to start from a user gesture. */
+    resumeAudio() {
+      this.initAudio();
+      if (this.audioCtx && this.audioCtx.state === "suspended") {
+        this.audioCtx.resume();
+      }
+    }
+
+    playSound(name) {
+      if (this.muted || !this.audioCtx || !this.sounds[name]) return;
+      if (this.audioCtx.state === "suspended") this.audioCtx.resume();
+      const source = this.audioCtx.createBufferSource();
+      source.buffer = this.sounds[name];
+      source.connect(this.audioCtx.destination);
+      source.start(0);
+    }
+
+    setMuted(muted) {
+      this.muted = muted;
+      this.root.dataset.muted = String(muted);
+      const button = this.root.querySelector(".dino-mute");
+      if (button) {
+        // Pressed means "sound on", which is what the filled state should signal.
+        button.setAttribute("aria-pressed", String(!muted));
+        button.setAttribute(
+          "aria-label",
+          muted ? "Unmute game sounds" : "Mute game sounds"
+        );
+      }
+      this.writePref(MUTED_KEY, muted);
+    }
+
+    setWasd(enabled) {
+      this.wasd = enabled;
+      const button = this.root.querySelector(".dino-keys");
+      if (button) {
+        button.setAttribute("aria-pressed", String(enabled));
+        button.setAttribute(
+          "aria-label",
+          enabled
+            ? "Disable W and S keys; arrow keys and spacebar still work"
+            : "Use W to jump and S to duck"
+        );
+      }
+      this.writePref(KEYS_KEY, enabled);
+    }
+
+    readPref(key) {
+      try {
+        return localStorage.getItem(key) === "1";
+      } catch {
+        return false;
+      }
+    }
+
+    writePref(key, value) {
+      try {
+        localStorage.setItem(key, value ? "1" : "0");
+      } catch {
+        /* private mode: the setting simply will not be remembered */
+      }
+    }
+
+    readHighScore() {
+      try {
+        return Number(localStorage.getItem(HIGH_SCORE_KEY)) || 0;
+      } catch {
+        return 0;
+      }
+    }
+
+    writeHighScore(score) {
+      try {
+        localStorage.setItem(HIGH_SCORE_KEY, String(score));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    // --- drawing -------------------------------------------------------------
+
+    draw() {
+      if (!this.spriteImage || !this.trex) return;
+      const ctx = this.ctx;
+      ctx.clearRect(0, VIEW_TOP, this.worldWidth, VIEW_HEIGHT);
+
+      if (this.nightOpacity > 0) this.drawNight();
+      this.drawClouds();
+      this.drawHorizon();
+      this.drawObstacles();
+      this.drawTrex();
+      this.drawMeter();
+      if (this.crashed) this.drawGameOver();
+      else if (!this.playing) this.drawStartPrompt();
+    }
+
+    drawClouds() {
+      const pos = this.spriteDef.CLOUD;
+      const s = this.spriteScale;
+      for (const cloud of this.clouds) {
+        this.ctx.drawImage(
+          this.spriteImage,
+          pos.x,
+          pos.y,
+          CLOUD.WIDTH * s,
+          CLOUD.HEIGHT * s,
+          Math.round(cloud.xPos),
+          cloud.yPos,
+          CLOUD.WIDTH,
+          CLOUD.HEIGHT
+        );
+      }
+    }
+
+    drawHorizon() {
+      const pos = this.spriteDef.HORIZON;
+      const s = this.spriteScale;
+      for (const line of this.horizonLines) {
+        this.ctx.drawImage(
+          this.spriteImage,
+          pos.x + line.sourceX * s,
+          pos.y,
+          HORIZON.WIDTH * s,
+          HORIZON.HEIGHT * s,
+          Math.round(line.xPos),
+          HORIZON.YPOS,
+          HORIZON.WIDTH,
+          HORIZON.HEIGHT
+        );
+      }
+    }
+
+    drawObstacles() {
+      const s = this.spriteScale;
+      for (const obstacle of this.obstacles) {
+        const pos = this.spriteDef[obstacle.type];
+        const sourceWidth = obstacle.spriteWidth * s;
+        const sourceHeight = obstacle.height * s;
+
+        // Groups of 1, 2 and 3 cacti are stored one after another, so the offset
+        // grows with the square of the group size. (Chromium offline.js)
+        let sourceX =
+          sourceWidth * obstacle.size * (0.5 * (obstacle.size - 1)) + pos.x;
+        if (obstacle.currentFrame > 0)
+          sourceX += sourceWidth * obstacle.currentFrame;
+
+        this.ctx.drawImage(
+          this.spriteImage,
+          sourceX,
+          pos.y,
+          sourceWidth * obstacle.size,
+          sourceHeight,
+          Math.round(obstacle.xPos),
+          obstacle.yPos,
+          obstacle.spriteWidth * obstacle.size,
+          obstacle.height
+        );
+      }
+    }
+
+    drawTrex() {
+      const trex = this.trex;
+      const s = this.spriteScale;
+      const pos = this.spriteDef.TREX;
+      let sourceWidth =
+        trex.ducking && trex.status !== "CRASHED"
+          ? TREX.WIDTH_DUCK
+          : TREX.WIDTH;
+      let sourceHeight = TREX.HEIGHT;
+      let sourceX = trex.currentAnimFrames[trex.currentFrame] ?? 0;
+
+      this.ctx.drawImage(
+        this.spriteImage,
+        pos.x + sourceX * s,
+        pos.y,
+        sourceWidth * s,
+        sourceHeight * s,
+        Math.round(trex.xPos),
+        Math.round(trex.yPos),
+        trex.ducking && trex.status !== "CRASHED"
+          ? TREX.WIDTH_DUCK
+          : TREX.WIDTH,
+        TREX.HEIGHT
+      );
+    }
+
+    drawMeter() {
+      const pos = this.spriteDef.TEXT_SPRITE;
+      const s = this.spriteScale;
+      const top = VIEW_TOP + 6;
+
+      /** Glyph index: 0-9 are the digits, 10 is "H" and 11 is "I". */
+      const glyph = (index, x, alpha) => {
+        this.ctx.save();
+        this.ctx.globalAlpha = alpha;
+        this.ctx.drawImage(
+          this.spriteImage,
+          pos.x + index * METER.WIDTH * s,
+          pos.y,
+          METER.WIDTH * s,
+          METER.HEIGHT * s,
+          Math.round(x),
+          top,
+          METER.WIDTH,
+          METER.HEIGHT
+        );
+        this.ctx.restore();
+      };
+
+      const digits = this.meterDigits.length
+        ? this.meterDigits
+        : "00000".split("");
+      const scoreWidth = METER.DEST_WIDTH * digits.length;
+      const scoreX = this.worldWidth - 10 - scoreWidth;
+
+      if (this.meterPaint) {
+        digits.forEach((d, i) =>
+          glyph(Number(d), scoreX + i * METER.DEST_WIDTH, 1)
+        );
+      }
+
+      if (this.highestScore > 0) {
+        const best = String(this.highestScore)
+          .padStart(METER.MAX_DISTANCE_UNITS, "0")
+          .split("");
+        // "HI" then the best score, dimmed, sitting to the left of the live score.
+        const bestWidth = METER.DEST_WIDTH * (best.length + 2) + 6;
+        let x = scoreX - bestWidth - 8;
+        glyph(10, x, 0.8);
+        glyph(11, x + METER.DEST_WIDTH, 0.8);
+        x += METER.DEST_WIDTH * 2 + 6;
+        best.forEach((d, i) => glyph(Number(d), x + i * METER.DEST_WIDTH, 0.8));
+      }
+    }
+
+    drawNight() {
+      const s = this.spriteScale;
+      const moonPos = this.spriteDef.MOON;
+      const starPos = this.spriteDef.STAR;
+      this.ctx.save();
+      this.ctx.globalAlpha = this.nightOpacity;
+
+      for (const star of this.stars) {
+        this.ctx.drawImage(
+          this.spriteImage,
+          starPos.x,
+          star.sourceY,
+          NIGHT.STAR_SIZE * s,
+          NIGHT.STAR_SIZE * s,
+          Math.round(star.x),
+          Math.round(star.y),
+          NIGHT.STAR_SIZE,
+          NIGHT.STAR_SIZE
+        );
+      }
+
+      // The moon sprite holds seven phases side by side; the crescents are one
+      // width, the full moon is two.
+      const phase = NIGHT.PHASES[this.nightPhase];
+      const isFull = this.nightPhase === 3;
+      const width = isFull ? NIGHT.WIDTH * 2 : NIGHT.WIDTH;
+      this.ctx.drawImage(
+        this.spriteImage,
+        moonPos.x + phase * s,
+        moonPos.y,
+        width * s,
+        NIGHT.HEIGHT * s,
+        Math.round(this.nightXPos),
+        VIEW_TOP + NIGHT.HEIGHT / 2,
+        width,
+        NIGHT.HEIGHT
+      );
+      this.ctx.restore();
+    }
+
+    /**
+     * Renders a string in the pixel font to an offscreen canvas once, so it can be
+     * blitted with smoothing off and stay as crisp as the sprite sheet itself.
+     */
+    textSprite(text) {
+      this.textCache = this.textCache || {};
+      if (this.textCache[text]) return this.textCache[text];
+
+      const canvas = document.createElement("canvas");
+      canvas.width = textWidth(text);
+      canvas.height = GLYPH_H;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#535353";
+      [...text].forEach((character, index) => {
+        const glyph = FONT[character];
+        if (!glyph) return;
+        const originX = index * GLYPH_PITCH;
+        glyph.forEach((row, y) => {
+          for (let x = 0; x < row.length; x++) {
+            if (row[x] === "#") ctx.fillRect(originX + x, y, 1, 1);
+          }
+        });
+      });
+
+      this.textCache[text] = canvas;
+      return canvas;
+    }
+
+    /**
+     * The idle prompt, in the sprite's own lettering and in the slot the GAME OVER
+     * banner uses, so the two read as the same thing. The longest wording that fits
+     * the playfield wins, which matters on narrow screens.
+     */
+    drawStartPrompt() {
+      const options = this.isTouch
+        ? ["TAP TO START", "TAP TO PLAY"]
+        : ["PRESS SPACEBAR TO START", "PRESS SPACE TO START", "PRESS SPACE"];
+      const room = this.worldWidth - 24;
+      const text =
+        options.find(option => textWidth(option) <= room) ??
+        options[options.length - 1];
+
+      const sprite = this.textSprite(text);
+      this.ctx.drawImage(
+        sprite,
+        Math.round((this.worldWidth - sprite.width) / 2),
+        Math.round(VIEW_TOP + VIEW_HEIGHT / 2 - PANEL.TEXT_HEIGHT - 14)
+      );
+    }
+
+    drawGameOver() {
+      const s = this.spriteScale;
+      const pos = this.spriteDef.TEXT_SPRITE;
+
+      const centreX = this.worldWidth / 2;
+
+      this.ctx.drawImage(
+        this.spriteImage,
+        pos.x,
+        pos.y + PANEL.TEXT_Y * s,
+        PANEL.TEXT_WIDTH * s,
+        PANEL.TEXT_HEIGHT * s,
+        Math.round(centreX - PANEL.TEXT_WIDTH / 2),
+        Math.round(VIEW_TOP + VIEW_HEIGHT / 2 - PANEL.TEXT_HEIGHT - 14),
+        PANEL.TEXT_WIDTH,
+        PANEL.TEXT_HEIGHT
+      );
+
+      this.drawRestartButton(centreX, VIEW_TOP + VIEW_HEIGHT / 2 + 14);
+    }
+
+    /** A stroked refresh arrow, in place of the sprite sheet's solid dark button. */
+    drawRestartButton(cx, cy) {
+      const ctx = this.ctx;
+      const r = 10;
+      const head = -Math.PI * 0.35;
+      ctx.save();
+      ctx.strokeStyle = "#535353";
+      ctx.fillStyle = "#535353";
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, head, Math.PI * 1.45);
+      ctx.stroke();
+
+      // Arrowhead sitting on the open end of the arc, pointing along the tangent.
+      const hx = cx + Math.cos(head) * r;
+      const hy = cy + Math.sin(head) * r;
+      const tangent = head - Math.PI / 2;
+      const size = 5;
+      ctx.beginPath();
+      ctx.moveTo(hx + Math.cos(tangent) * size, hy + Math.sin(tangent) * size);
+      ctx.lineTo(
+        hx + Math.cos(tangent + 2.4) * size,
+        hy + Math.sin(tangent + 2.4) * size
+      );
+      ctx.lineTo(
+        hx + Math.cos(tangent - 2.4) * size,
+        hy + Math.sin(tangent - 2.4) * size
+      );
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    destroy() {
+      this.stopLoop();
+      this.observer?.disconnect();
+      for (const [target, type, handler, options] of this.listeners) {
+        target.removeEventListener(type, handler, options);
+      }
+      this.listeners = [];
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Boot, and re-boot across view transitions.
+  // ---------------------------------------------------------------------------
+  let instance = null;
+
+  function boot() {
+    instance?.destroy();
+    instance = null;
+    const root = document.querySelector(".dino-root");
+    if (!root) return;
+    instance = new DinoGame(root);
+    // Exposed so the game can be driven from tests and the console.
+    root.dinoGame = instance;
+  }
+
+  // With the client router, `astro:page-load` also fires for the first page, so
+  // it is the only boot signal; booting on DOMContentLoaded as well built the game
+  // twice on every hard load.
+  document.addEventListener("astro:page-load", boot);
+  document.addEventListener("astro:before-swap", () => {
+    instance?.destroy();
+    instance = null;
+  });
+</script>

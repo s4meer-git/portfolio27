@@ -1,0 +1,82 @@
+{
+  "collectionName": "components_portfolio_profile",
+  "info": {
+    "displayName": "Profile",
+    "description": "Your name, role and biography, shown at the top of the home page."
+  },
+  "attributes": {
+    "displayName": {
+      "type": "string",
+      "required": true
+    },
+    "namePronunciation": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "audios"
+      ]
+    },
+    "role": {
+      "type": "string"
+    },
+    "slogan": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "about": {
+      "type": "richtext"
+    },
+    "avatar": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "avatarDark": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "avatarAlt": {
+      "type": "string"
+    },
+    "avatarLabel": { "type": "string", "maxLength": 80 },
+    "avatarShirt": { "type": "component", "component": "portfolio.avatar-shirt", "repeatable": false },
+    "avatarVariants": { "type": "component", "component": "portfolio.avatar-variant", "repeatable": true },
+    "verified": {
+      "type": "boolean",
+      "default": true
+    },
+    "location": {
+      "type": "string"
+    },
+    "timeZone": {
+      "type": "string"
+    },
+    "locationPhotoSubject": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "locationPhoto": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "pronouns": {
+      "type": "string"
+    },
+    "showLocalTime": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

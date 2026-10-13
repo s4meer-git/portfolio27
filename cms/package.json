@@ -1,0 +1,32 @@
+{
+  "name": "portfolio-cms",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "develop": "strapi develop",
+    "build": "strapi build",
+    "start": "strapi start"
+  },
+  "dependencies": {
+    "@strapi/design-system": "^2.2.4",
+    "@strapi/icons": "^2.2.4",
+    "@strapi/plugin-users-permissions": "5.54.0",
+    "@strapi/provider-email-nodemailer": "5.54.0",
+    "@strapi/strapi": "5.54.0",
+    "better-sqlite3": "12.6.2",
+    "developer-icons": "^5.3.9",
+    "lucide-react": "^0.484.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.0",
+    "sharp": "0.35.3",
+    "styled-components": "^6.1.0"
+  },
+  "engines": {
+    "node": ">=22.0.0 <=24.x.x"
+  },
+  "overrides": {
+    "handlebars": "4.7.10",
+    "shell-quote": "1.11.0"
+  }
+}

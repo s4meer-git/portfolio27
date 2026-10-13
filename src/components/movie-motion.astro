@@ -1,0 +1,63 @@
+<script>
+  let teardown: (() => void) | undefined;
+  function setupMovies() {
+    teardown?.();
+    const controller = new AbortController();
+    const signal = controller.signal;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const figures = [...document.querySelectorAll<HTMLElement>('[data-movie-moment]')];
+    if (!figures.length) { controller.abort(); teardown = undefined; return; }
+    const visible = new Set<HTMLVideoElement>();
+    const manuallyPaused = new Set<HTMLVideoElement>();
+    const manuallyPlaying = new Set<HTMLVideoElement>();
+    function update(figure: HTMLElement, video: HTMLVideoElement, button: HTMLButtonElement) {
+      const playing = !video.paused;
+      button.textContent = playing ? 'Pause' : 'Play';
+      button.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} animation`);
+      figure.classList.toggle('movie-playing', playing);
+    }
+    async function play(figure: HTMLElement, video: HTMLVideoElement, button: HTMLButtonElement) {
+      if (!video.src && video.dataset.src) video.src = video.dataset.src;
+      try { await video.play(); } catch { /* Keep the poster and manual play available. */ }
+      if (signal.aborted) video.pause();
+      else update(figure, video, button);
+    }
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        const figure = entry.target as HTMLElement;
+        const video = figure.querySelector('video')!;
+        const button = figure.querySelector('button')!;
+        if (entry.isIntersecting && entry.intersectionRatio >= .2) {
+          visible.add(video);
+          if (!document.hidden && !manuallyPaused.has(video) && (!reduced.matches || manuallyPlaying.has(video))) void play(figure, video, button);
+        } else { visible.delete(video); video.pause(); }
+      }
+    }, { threshold: [0, .2] });
+    for (const figure of figures) {
+      const video = figure.querySelector('video');
+      const button = figure.querySelector('button');
+      if (!video || !button) continue;
+      button.hidden = false;
+      video.addEventListener('playing', () => { figure.classList.add('movie-ready'); update(figure, video, button); }, { signal });
+      video.addEventListener('pause', () => update(figure, video, button), { signal });
+      button.addEventListener('click', () => {
+        if (!video.paused) { manuallyPaused.add(video); manuallyPlaying.delete(video); video.pause(); }
+        else { manuallyPaused.delete(video); manuallyPlaying.add(video); void play(figure, video, button); }
+      }, { signal });
+      observer.observe(figure);
+    }
+    const sync = () => {
+      for (const figure of figures) {
+        const video = figure.querySelector('video'), button = figure.querySelector('button');
+        if (!video || !button) continue;
+        if (document.hidden || (reduced.matches && !manuallyPlaying.has(video))) video.pause();
+        else if (visible.has(video) && !manuallyPaused.has(video)) void play(figure, video, button);
+      }
+    };
+    document.addEventListener('visibilitychange', sync, { signal });
+    reduced.addEventListener('change', sync, { signal });
+    teardown = () => { controller.abort(); observer.disconnect(); for (const figure of figures) figure.querySelector('video')?.pause(); };
+  }
+  document.addEventListener('astro:page-load', setupMovies);
+  document.addEventListener('astro:before-swap', () => teardown?.());
+</script>

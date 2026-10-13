@@ -1,0 +1,114 @@
+{
+  "kind": "singleType",
+  "collectionName": "site_settings",
+  "info": {
+    "singularName": "site-setting",
+    "pluralName": "site-settings",
+    "displayName": "Website settings",
+    "description": "Everything on the site that is not an article, project or job."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "profile": {
+      "type": "component",
+      "component": "portfolio.profile",
+      "repeatable": false
+    },
+    "socialLinks": {
+      "type": "component",
+      "component": "portfolio.social-link",
+      "repeatable": true
+    },
+    "spotify": {
+      "type": "component",
+      "component": "portfolio.spotify",
+      "repeatable": false
+    },
+    "badges": {
+      "type": "component",
+      "component": "portfolio.badge-settings",
+      "repeatable": false
+    },
+    "skills": {
+      "type": "component",
+      "component": "portfolio.skill",
+      "repeatable": true
+    },
+    "contributions": {
+      "type": "component",
+      "component": "portfolio.contributions",
+      "repeatable": false
+    },
+    "cta": {
+      "type": "component",
+      "component": "portfolio.cta",
+      "repeatable": false
+    },
+    "emailBranding": {
+      "type": "component",
+      "component": "portfolio.email-branding",
+      "repeatable": false
+    },
+    "navigation": {
+      "type": "component",
+      "component": "portfolio.nav-link",
+      "repeatable": true
+    },
+    "commandMenu": {
+      "type": "component",
+      "component": "portfolio.command-menu",
+      "repeatable": false
+    },
+    "sectionLabels": {
+      "type": "component",
+      "component": "portfolio.section-labels",
+      "repeatable": false
+    },
+    "articleLabels": {
+      "type": "component",
+      "component": "portfolio.article-labels",
+      "repeatable": false
+    },
+    "publicationLabels": {
+      "type": "component",
+      "component": "portfolio.publication-labels",
+      "repeatable": false
+    },
+    "projectLabels": {
+      "type": "component",
+      "component": "portfolio.project-labels",
+      "repeatable": false
+    },
+    "uiLabels": {
+      "type": "component",
+      "component": "portfolio.ui-labels",
+      "repeatable": false
+    },
+    "articlesPerPage": {
+      "type": "integer",
+      "min": 1,
+      "max": 100,
+      "default": 6,
+      "required": true
+    },
+    "publicationsPerPage": {
+      "type": "integer",
+      "min": 1,
+      "max": 100,
+      "default": 10,
+      "required": true
+    },
+    "footer": {
+      "type": "component",
+      "component": "portfolio.footer",
+      "repeatable": false
+    },
+    "seo": {
+      "type": "component",
+      "component": "portfolio.seo",
+      "repeatable": false
+    }
+  }
+}

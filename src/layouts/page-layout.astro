@@ -1,0 +1,77 @@
+---
+import { capitalizeFirstLetter } from "@/lib/utils";
+import Layout from "./layout.astro";
+import Breadcrumbs from "@/components/breadcrumbs.astro";
+
+import Navbar from "@/components/navbar/index.astro";
+import Footer from "@/components/footer.astro";
+import LinkBtn from "@/components/ui/link-btn.astro";
+import Pattern from "@/components/ui/pattern.astro";
+
+import Box from "@/components/box/index.astro";
+import BoxTitle from "@/components/box/title.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxContent from "@/components/box/content.astro";
+
+import { ArrowLeft } from "lucide-react";
+
+interface Props {
+  title: string;
+  description: string;
+  backLink?: string;
+  relatedLink?: { href: string; label: string };
+}
+
+const { title, description, backLink, relatedLink } = Astro.props;
+---
+
+<Layout title={`${title}`} description={description}>
+  <Navbar />
+  <main class="page-frame relative mx-auto min-h-screen max-w-3xl" aria-label="Main content">
+    <Pattern className="h-14">
+      {
+        backLink && (
+          <LinkBtn
+            ariaLabel="Back link"
+            className="absolute bottom-0 left-2 z-1"
+            href={backLink}
+          >
+            <ArrowLeft />
+          </LinkBtn>
+        )
+      }
+    </Pattern>
+
+    <Breadcrumbs />
+    <Box>
+      <BoxHeader>
+        <BoxTitle as="h1" className="text-2xl !font-medium"
+          >{capitalizeFirstLetter(title)}</BoxTitle
+        >
+      </BoxHeader>
+      <BoxContent>
+        {description}
+        {relatedLink && <p class="mt-3"><a href={relatedLink.href} class="underline underline-offset-4">{relatedLink.label}</a></p>}
+      </BoxContent>
+    </Box>
+
+    <slot />
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  /* Keep the existing section borders connected across breadcrumbs and any
+     remaining space below a short collection. These rails don't change widths. */
+  @media (min-width: 48rem) {
+    .page-frame::before, .page-frame::after {
+      content: "";
+      position: absolute;
+      inset-block: 0;
+      border-inline-start: 1px dashed hsl(var(--border));
+      pointer-events: none;
+    }
+    .page-frame::before { inset-inline-start: 0; }
+    .page-frame::after { inset-inline-end: 0; }
+  }
+</style>

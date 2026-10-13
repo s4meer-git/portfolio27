@@ -1,0 +1,55 @@
+---
+/**
+ * The open/close affordance: two chevrons that point apart when closed and swap to
+ * point at each other when open.
+ *
+ * The original (ncdai/chanhdai.com, MIT) morphs the `d` attribute with Motion. The
+ * same two shapes are just each other mirrored about their own centre, so a CSS
+ * `scaleY(-1)` reproduces the animation exactly with no JavaScript, and it
+ * transitions on the GPU.
+ */
+interface Props {
+  className?: string;
+}
+const { className } = Astro.props;
+---
+
+<svg
+  class:list={["dino-chevrons size-4", className]}
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  <path class="chevron-up" d="M7 9L12 4L17 9"></path>
+  <path class="chevron-down" d="M7 15L12 20L17 15"></path>
+</svg>
+
+<style>
+  .chevron-up,
+  .chevron-down {
+    transition: transform 150ms cubic-bezier(0.42, 0, 0.58, 1);
+  }
+  /* Each chevron flips about its own centre, turning "point apart" into
+     "point together" without redrawing the paths. */
+  .chevron-up {
+    transform-origin: 12px 6.5px;
+  }
+  .chevron-down {
+    transform-origin: 12px 17.5px;
+  }
+  :global([data-open="true"]) .chevron-up,
+  :global([data-open="true"]) .chevron-down {
+    transform: scaleY(-1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chevron-up,
+    .chevron-down {
+      transition: none;
+    }
+  }
+</style>

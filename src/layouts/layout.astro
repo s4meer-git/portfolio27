@@ -1,0 +1,149 @@
+---
+// Self-host current variable Geist faces so every weight and italic resolves to
+// the same family. Logo outlines and the game's pixel lettering are independent.
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist/wght-italic.css";
+import "@fontsource-variable/geist-mono";
+import "@fontsource-variable/geist-mono/wght-italic.css";
+
+import { ClientRouter } from "astro:transitions";
+import Analytics from "@vercel/analytics/astro";
+
+const SITE = Astro.locals.portfolio.site.seo;
+
+import "@/styles/global.css";
+import BackToTop from "@/components/back-to-top.astro";
+import CommandMenu from "@/components/command-menu/index.astro";
+import PageLoader from "@/components/page-loader.astro";
+
+// The Vercel script only exists on Vercel; elsewhere it is a failed request per page.
+const onVercel = Boolean(process.env.VERCEL);
+const favicon = SITE.favicon || "/favicon.svg";
+
+export interface Props {
+  title?: string;
+  author?: string;
+  profile?: string;
+  description?: string;
+  ogImage?: string;
+  pageType?: string;
+  canonicalURL?: string;
+}
+
+import { pageMetadata } from "@/lib/seo";
+const metadata = pageMetadata(Astro.locals.portfolio, Astro.url.pathname, Astro.props);
+const { title, description, author, image: socialImageURL, canonical: canonicalURL,
+  ogType: pageType, structuredData } = metadata;
+---
+
+<html lang={SITE.language || "en"}>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Before the theme script, which sets it to match the page on first paint. -->
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="color-scheme" content="light dark" />
+    <style is:inline>
+      html { background-color: hsl(var(--background, 0 0% 100%)); }
+      html.dark { background-color: hsl(var(--background, 0 0% 3%)); }
+    </style>
+    <script is:inline>
+      (() => {
+        const applyPreference = () => {
+          let theme;
+          try {
+            theme = localStorage.getItem("theme");
+          } catch {
+            // Use the system preference when storage is unavailable.
+          }
+          if (theme !== "dark" && theme !== "light") {
+            theme = window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+          }
+          document.documentElement.classList.toggle("dark", theme === "dark");
+          document.documentElement.style.colorScheme = theme;
+          document
+            .querySelector('meta[name="theme-color"]')
+            ?.setAttribute("content", theme === "dark" ? "#080808" : "#ffffff");
+        };
+        applyPreference();
+        document.addEventListener("astro:after-swap", applyPreference);
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script is:inline>
+      document.documentElement.setAttribute("data-page-loading", "");
+      // If the loader module itself fails, keep server-rendered content usable.
+      window.addEventListener("load", () => {
+        if (customElements.get("site-loader")) return;
+        document.documentElement.removeAttribute("data-page-loading");
+        const content = document.querySelector("[data-page-content]");
+        if (content) content.inert = false;
+        document.dispatchEvent(new Event("site:ready"));
+      }, { once: true });
+    </script>
+    <link rel="icon" type="image/svg+xml" sizes="any" href={favicon} />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="canonical" href={canonicalURL} />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- General Meta Tags -->
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    <meta name="author" content={author} />
+    <meta name="robots" content={metadata.robots} />
+    {SITE.googleVerification && <meta name="google-site-verification" content={SITE.googleVerification} />}
+    {SITE.bingVerification && <meta name="msvalidate.01" content={SITE.bingVerification} />}
+    {metadata.record.path === "/" && !metadata.noindex && SITE.llmsEnabled !== false && <link rel="alternate" type="text/markdown" href="/index.md" title={metadata.siteName} />}
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content={pageType} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {socialImageURL && <meta property="og:image" content={socialImageURL} />}
+    {socialImageURL && <meta property="og:image:alt" content={metadata.imageAlt} />}
+    <meta property="og:site_name" content={metadata.siteName} />
+    <meta property="og:locale" content={SITE.locale || "en_US"} />
+    <meta property="og:url" content={canonicalURL} />
+
+    <!-- X / Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={canonicalURL} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    {socialImageURL && <meta name="twitter:image" content={socialImageURL} />}
+    {socialImageURL && <meta name="twitter:image:alt" content={metadata.imageAlt} />}
+    {SITE.twitterHandle && <meta name="twitter:creator" content={SITE.twitterHandle} />}
+
+    <ClientRouter />
+
+    <!-- Google JSON-LD Structured data -->
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
+    />
+
+  </head>
+  <body class="relative min-h-screen overflow-x-hidden">
+    <PageLoader />
+    <!--
+      The full-bleed dashed rules reach past the viewport. overflow-x: hidden on body
+      only stops the visitor scrolling sideways; scripts (anchor jumps, scrollIntoView)
+      could still shift the page. clip removes that overflow entirely and, unlike
+      hidden, does not create a scroll container, so the sticky navbar keeps working.
+    -->
+    <div class="overflow-x-clip" data-page-content>
+      <slot />
+    </div>
+    <BackToTop />
+    <CommandMenu />
+    {onVercel && <Analytics />}
+    <script>
+      import "@/lib/smooth-scroll";
+    </script>
+  </body>
+</html>

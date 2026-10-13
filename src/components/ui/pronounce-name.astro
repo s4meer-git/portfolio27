@@ -1,0 +1,170 @@
+---
+/**
+ * Plays a recording of the owner saying their name, as on ncdai/chanhdai.com (MIT).
+ *
+ * The audio is set in the CMS (Profile → Name pronunciation) and is only fetched once
+ * the visitor points at or focuses the button, so it costs nothing on page load.
+ * Press P anywhere on the page to play it, like the reference site.
+ */
+interface Props {
+  src: string;
+  name: string;
+}
+const { src, name } = Astro.props;
+---
+
+<pronounce-name data-src={src}>
+  <button type="button" class="pronounce" aria-label={`Hear how to pronounce ${name}`} title="Pronounce my name (P)">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path
+        d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"
+      ></path>
+      <path class="wave wave-1" d="M16 9a5 5 0 0 1 0 6"></path>
+      <path class="wave wave-2" d="M19.364 18.364a9 9 0 0 0 0-12.728"></path>
+    </svg>
+  </button>
+</pronounce-name>
+
+<style>
+  pronounce-name {
+    display: inline-flex;
+  }
+  .pronounce {
+    position: relative;
+    display: grid;
+    place-items: center;
+    color: hsl(var(--muted-foreground));
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    transition:
+      color 150ms ease,
+      scale 150ms ease;
+  }
+  /* A comfortable tap target on touch screens without changing the layout. */
+  .pronounce::before {
+    content: "";
+    position: absolute;
+    inset: -0.75rem;
+  }
+  @media (pointer: fine) {
+    .pronounce::before {
+      inset: -0.25rem;
+    }
+  }
+  .pronounce:hover {
+    color: hsl(var(--foreground));
+  }
+  .pronounce:active {
+    scale: 0.9;
+  }
+  .pronounce:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+    border-radius: 0.25rem;
+  }
+  .pronounce svg {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+  @media (min-width: 640px) {
+    .pronounce svg {
+      width: 1.35rem;
+      height: 1.35rem;
+    }
+  }
+  /* While playing, the sound waves fade out and back in, one after the other. */
+  .pronounce[data-playing] .wave {
+    animation: wave 0.9s ease-in-out infinite;
+  }
+  .pronounce[data-playing] .wave-2 {
+    animation-delay: 0.15s;
+  }
+  .pronounce[data-playing] {
+    color: hsl(var(--foreground));
+  }
+  @keyframes wave {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    45% {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pronounce[data-playing] .wave {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  class PronounceName extends HTMLElement {
+    private audio?: HTMLAudioElement;
+    private cleanup = new AbortController();
+
+    connectedCallback() {
+      this.cleanup.abort();
+      this.cleanup = new AbortController();
+      const button = this.querySelector("button")!;
+      const { signal } = this.cleanup;
+      const load = () => {
+        if (this.audio) return this.audio;
+        this.audio = new Audio(this.dataset.src);
+        this.audio.preload = "auto";
+        this.audio.addEventListener("playing", () => button.setAttribute("data-playing", ""), { signal });
+        for (const end of ["ended", "pause", "error"])
+          this.audio.addEventListener(end, () => button.removeAttribute("data-playing"), { signal });
+        return this.audio;
+      };
+      const play = () => {
+        const audio = load();
+        audio.currentTime = 0;
+        void audio.play().catch(() => { if (this.audio === audio) button.removeAttribute("data-playing"); });
+      };
+
+      // Fetch the clip only when someone shows interest in the button.
+      button.addEventListener("pointerenter", load, { signal, once: true });
+      button.addEventListener("focus", load, { signal, once: true });
+      button.addEventListener("click", play, { signal });
+
+      // P plays it from anywhere, unless the visitor is typing, a dialog is open, or
+      // it completes the command menu's "G then P" shortcut for Projects.
+      let lastG = 0;
+      document.addEventListener(
+        "keydown",
+        event => {
+          const key = event.key.toLowerCase();
+          if (key === "g") lastG = Date.now();
+          if (key !== "p" || event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
+          if (Date.now() - lastG < 1000) return;
+          const target = event.target as HTMLElement | null;
+          if (target?.closest("input, textarea, select, [contenteditable], [role=dialog]")) return;
+          play();
+        },
+        { signal }
+      );
+    }
+
+    disconnectedCallback() {
+      this.cleanup.abort();
+      if (this.audio) {
+        this.audio.pause();
+        this.audio.removeAttribute("src");
+        this.audio.load();
+        this.audio = undefined;
+      }
+      this.querySelector("button")?.removeAttribute("data-playing");
+    }
+  }
+  if (!customElements.get("pronounce-name")) customElements.define("pronounce-name", PronounceName);
+</script>

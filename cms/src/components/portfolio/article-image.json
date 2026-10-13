@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_portfolio_article_image",
+  "info": {
+    "displayName": "Original article image"
+  },
+  "attributes": {
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "alt": {
+      "type": "string"
+    },
+    "caption": {
+      "type": "text"
+    },
+    "displayWidth": {
+      "type": "integer",
+      "min": 20,
+      "max": 100,
+      "default": 100,
+      "description": "Displayed width as a percentage of the article column. The original file is preserved."
+    }
+  }
+}

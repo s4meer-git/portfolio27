@@ -1,0 +1,28 @@
+---
+const labels = Astro.locals.portfolio.site.sectionLabels;
+const PROFILE_INFO = Astro.locals.portfolio.site.profile;
+import MarkdownRenderer from "@/components/ui/markdown-renderer.astro";
+
+import Box from "@/components/box/index.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxTitle from "@/components/box/title.astro";
+import BoxContent from "@/components/box/content.astro";
+---
+
+<Box id="about">
+  <BoxHeader>
+    <BoxTitle>{labels.about}</BoxTitle>
+  </BoxHeader>
+  <BoxContent className="about-copy">
+    <MarkdownRenderer
+      className="text-[0.9375rem] leading-6 font-normal"
+      content={PROFILE_INFO.about}
+    />
+  </BoxContent>
+</Box>
+
+<style>
+  :global(.about-copy .markdown strong) {
+    font-weight: 500;
+  }
+</style>

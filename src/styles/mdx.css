@@ -1,0 +1,116 @@
+@layer base {
+  .prose {
+    @apply prose-headings:!mb-2 prose-headings:scroll-mt-20 prose-headings:!text-foreground prose-p:!text-sm prose-p:leading-8 prose-p:!text-foreground lg:prose-p:!text-base dark:prose-p:!text-foreground/80 prose-a:!text-foreground prose-a:underline-offset-4 prose-blockquote:!border-l-accent prose-blockquote:opacity-80 prose-figcaption:!text-foreground prose-figcaption:opacity-70 prose-strong:!text-foreground prose-code:rounded prose-code:bg-muted/75 prose-code:p-1 prose-code:!text-foreground prose-code:before:!content-none prose-code:after:!content-none prose-pre:!max-h-[512px] prose-ol:!text-foreground prose-ul:overflow-x-clip prose-ul:!text-foreground prose-li:!text-sm prose-li:!text-foreground prose-li:marker:!text-foreground/80 lg:prose-li:!text-base dark:prose-li:!text-foreground/80 prose-table:text-foreground prose-th:border prose-th:border-border prose-td:border prose-td:border-border prose-img:!my-2 prose-img:!rounded-lg prose-video:!rounded-lg prose-hr:!border-border;
+  }
+  .prose a {
+    @apply break-words;
+  }
+  .prose img { height: auto; }
+  .prose thead th:first-child,
+  tbody td:first-child,
+  tfoot td:first-child {
+    padding-inline-start: 0.5714286em !important;
+  }
+  .prose h2#table-of-contents {
+    @apply mb-2;
+  }
+  .prose details {
+    @apply inline-block cursor-pointer text-foreground select-none;
+  }
+  .prose summary {
+    @apply focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent focus-visible:outline-dashed;
+  }
+  .prose h2#table-of-contents + p {
+    @apply hidden;
+  }
+
+  /* ===== Code Blocks & Syntax Highlighting ===== */
+  pre:has(code) {
+    @apply border border-border;
+  }
+  code,
+  blockquote {
+    word-wrap: break-word;
+  }
+
+  pre > code {
+    white-space: pre;
+  }
+  /* The inline-code treatment above (foreground text, muted chip, padding) also
+     caught code inside blocks, which are dark in both themes: the code came out
+     near-black on dark. Code in a block takes the block's own light text instead. */
+  .prose pre code {
+    color: inherit !important;
+    background-color: transparent;
+    padding: 0;
+  }
+}
+
+.prose blockquote.article-blockquote {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  margin: 2.5rem auto;
+  max-width: 38rem;
+  padding: .5rem 1.5rem;
+  border: 0;
+  border-inline-start: 4px solid hsl(var(--border));
+  border-inline-start-color: hsl(var(--border)) !important;
+  border-radius: 0;
+  background: transparent;
+  opacity: 1;
+}
+.prose .article-blockquote[data-variant="solid"] { border-inline-start-color: hsl(var(--foreground)) !important; }
+.prose .article-blockquote[data-variant="plain"] { border-inline-start-width: 0; }
+.prose .article-blockquote[data-align="start"] { text-align: start; align-items: flex-start; }
+.prose .article-blockquote[data-align="center"] { text-align: center; align-items: center; }
+.prose .article-blockquote[data-align="end"] { text-align: end; align-items: flex-end; }
+.prose .article-blockquote-icon {
+  display: block;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  color: hsl(var(--muted-foreground));
+}
+.prose .article-question-icon { width: 2.1rem; height: 2.8rem; }
+.prose .article-blockquote[data-variant="solid"] .article-blockquote-icon { color: hsl(var(--foreground)); }
+.prose .article-blockquote p { margin-block: 0 !important; }
+.prose .article-question p { line-height: 1.65; font-weight: 600; font-style: italic; text-wrap: pretty; }
+/* Important prose defaults live in base; their overrides need the same layer. */
+@layer base {
+  .prose .article-question p { font-size: clamp(18px, 2vw, 20px) !important; }
+  .prose blockquote.article-blockquote { border-inline-start-color: hsl(var(--border)) !important; }
+  .prose .article-blockquote[data-variant="solid"] { border-inline-start-color: hsl(var(--foreground)) !important; }
+}
+.prose .article-blockquote p { max-width: 100%; }
+.prose .article-blockquote p::before, .prose .article-blockquote p::after { content: none; }
+.prose .article-blockquote-caption { font-size: .875rem; font-weight: 400; font-style: normal; color: hsl(var(--muted-foreground)); }
+
+@layer base {
+.prose figure.article-artwork { margin-inline: auto; }
+.prose figure.article-artwork img { width: 100%; }
+.prose figure.movie-moment { max-width: 480px; margin: 2rem auto; }
+.prose .movie-stage { position: relative; overflow: hidden; border-radius: .5rem; background: #101014; isolation: isolate; container-type: inline-size; }
+.prose .movie-stage img, .prose .movie-stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; margin: 0 !important; border-radius: 0 !important; }
+.prose .movie-video { opacity: 0; }
+.prose .movie-ready .movie-video { opacity: 1; }
+.prose .movie-dialogue { position: absolute; inset: auto 0 0; min-height: var(--caption-area, 32%); box-sizing: border-box; display: grid; place-content: center; padding: .25rem .75rem; margin: 0 !important; color: #fff !important; font-size: clamp(13px, 4.2cqw, 20px) !important; line-height: 1.25 !important; text-align: center; font-weight: 700; text-wrap: balance; text-shadow: 0 1px 3px #000; }
+.prose .movie-toggle { position: absolute; top: .5rem; right: .5rem; border: 1px solid rgb(255 255 255 / .4); border-radius: .3rem; padding: .2rem .5rem; background: rgb(0 0 0 / .65); color: #fff; font-size: .7rem; cursor: pointer; }
+.prose .movie-toggle:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.prose .movie-moment figcaption { margin-top: .5rem; text-align: center; font-size: .7rem; line-height: 1.5; }
+.prose .movie-stage:has(.movie-gif) .movie-dialogue { background: #000; }
+.prose .article-diagram { margin: 2rem auto; width: 100%; max-width: 680px; }
+.prose .article-diagram svg { display: block; width: 100%; height: auto; }
+.prose .article-diagram .diagram-compact { display: none; }
+@media (max-width: 640px) {
+  .prose .has-compact-diagram .diagram-wide { display: none; }
+  .prose .has-compact-diagram .diagram-compact { display: block; }
+}
+.prose .diagram-scroll { overflow-x: auto; overscroll-behavior-inline: contain; }
+.prose .diagram-node { fill: hsl(var(--background)); stroke: hsl(var(--border)); stroke-width: 1.5; }
+.prose .diagram-edge { stroke: hsl(var(--muted-foreground)); stroke-width: 1.5; }
+.prose .diagram-node-label { fill: hsl(var(--foreground)); font-family: inherit; font-size: 15px; font-weight: 500; }
+.prose .diagram-edge-label { fill: hsl(var(--muted-foreground)); font-family: inherit; font-size: 12px; stroke: hsl(var(--background)); stroke-width: 3px; stroke-linejoin: round; paint-order: stroke fill; }
+.prose .article-diagram figcaption { text-align: center; font-size: .8rem; line-height: 1.6; }
+}

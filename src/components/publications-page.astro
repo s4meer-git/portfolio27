@@ -1,0 +1,88 @@
+---
+/** The /publications list, paged; the counterpart of articles-page. */
+import PublicationItem from "@/components/publication-item.astro";
+import Pattern from "@/components/ui/pattern.astro";
+import Box from "@/components/box/index.astro";
+import BoxTitle from "@/components/box/title.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxContent from "@/components/box/content.astro";
+import LinkTag from "@/components/ui/link-tag.astro";
+import Pagination from "@/components/pagination.astro";
+import PageLayout from "@/layouts/page-layout.astro";
+
+interface Props {
+  filter?: { slug: string; name: string; description?: string };
+}
+const { filter } = Astro.props;
+const { publications: publishedPublications, categories: allCategories, site } = Astro.locals.portfolio;
+const labels = site.publicationLabels ?? {};
+const usedCategories = new Set(publishedPublications.map(item => item.data.category?.slug).filter(Boolean));
+const categories = allCategories.filter(item => usedCategories.has(item.slug));
+const publications = filter
+  ? publishedPublications.filter(item => item.data.category?.slug === filter.slug)
+  : publishedPublications;
+
+const currentPage = filter ? 1 : Number(Astro.params.page || 1);
+const pageSize = filter ? Math.max(1, publications.length) : site.publicationsPerPage || 10;
+const lastPage = Math.max(1, Math.ceil(publications.length / pageSize));
+
+const page = {
+  data: publications.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+  currentPage,
+  lastPage,
+  url: {
+    prev:
+      currentPage > 1
+        ? currentPage === 2
+          ? "/publications"
+          : `/publications/${currentPage - 1}`
+        : undefined,
+    next: currentPage < lastPage ? `/publications/${currentPage + 1}` : undefined,
+  },
+};
+---
+
+<PageLayout
+  title={filter?.name || labels.pageTitle || "Publications"}
+  description={filter ? filter.description || labels.categoryPageDescription?.replace("{name}", filter.name) || "" : labels.pageDescription || ""}
+  backLink={filter ? "/publications" : undefined}
+>
+  <Pattern />
+
+  <Box>
+    <BoxHeader>
+      <BoxTitle>{labels.categoriesHeading || site.articleLabels.categoriesHeading}</BoxTitle>
+    </BoxHeader>
+    <BoxContent>
+      <div class="flex flex-wrap items-center justify-start gap-x-4 gap-y-3">
+        {categories.map(category => <LinkTag href={`/publications/categories/${category.slug}`}
+          tag={category.name} active={filter?.slug === category.slug} />)}
+      </div>
+    </BoxContent>
+  </Box>
+
+  <Pattern />
+
+  <Box>
+    <BoxHeader>
+      <BoxTitle>{labels.listHeading || "Publications"}</BoxTitle>
+    </BoxHeader>
+    {
+      page.data.length > 0 ? (
+        <div class="flex w-full flex-col items-start justify-start divide-y divide-border">
+          {page.data.map(publication => (
+            <PublicationItem publication={publication} />
+          ))}
+        </div>
+      ) : (
+        <p class="p-4 text-sm text-muted-foreground">Nothing published yet.</p>
+      )
+    }
+
+    {page.lastPage > 1 && <div class="border-t py-2">
+      <Pagination page={page as any} />
+    </div>}
+  </Box>
+
+  <Pattern />
+</PageLayout>

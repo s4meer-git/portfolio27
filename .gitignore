@@ -1,0 +1,63 @@
+# build output
+dist/
+
+# generated types
+.astro/
+
+# screenshots kept by /api/link-preview
+.cache/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# environment variables
+.env
+.env.*
+!.env.example
+coolify.env
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/
+
+# CMS local state
+cms/.tmp/
+cms/.cache/
+cms/.strapi/
+cms/.strapi-updater.json
+cms/build/
+cms/public/uploads/*
+!cms/public/uploads/.gitkeep
+.env.*.local
+
+.cms-credentials.local
+.cms-backup/
+cms/.spotify-credentials.local*
+cms/.spotify-state.local*
+cms/.migration/
+
+# LinkedIn source captures and local import staging (CMS owns published content)
+.content-imports/
+
+# Private recovery archives and generated CMS output
+*-cms-backup*.tar.gz
+cms/dist/
+__pycache__/
+*.pyc
+
+# Databases and private keys belong in persistent storage, never Git.
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.pem
+*.key

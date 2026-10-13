@@ -1,0 +1,31 @@
+{
+  "collectionName": "components_portfolio_project_labels",
+  "info": {
+    "displayName": "Projects wording",
+    "description": "Wording on the projects pages, including the two buttons on each project."
+  },
+  "attributes": {
+    "pageTitle": {
+      "type": "string"
+    },
+    "pageDescription": {
+      "type": "text"
+    },
+    "emptyMessage": {
+      "type": "string",
+      "default": "Projects will be added here soon."
+    },
+    "coreHeading": {
+      "type": "string"
+    },
+    "sideHeading": {
+      "type": "string"
+    },
+    "sourceButton": {
+      "type": "string"
+    },
+    "previewButton": {
+      "type": "string"
+    }
+  }
+}

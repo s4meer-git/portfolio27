@@ -1,0 +1,137 @@
+---
+import CmsIcon from "@/components/ui/cms-icon.astro";
+import Avatar from "@/components/ui/avatar.astro";
+import Box from "@/components/box/index.astro";
+import BoxContent from "@/components/box/content.astro";
+import ProfileDetails from "@/components/profile-details.astro";
+import IconTile from "@/components/ui/icon-tile.astro";
+
+const PROFILE_INFO = Astro.locals.portfolio.site.profile;
+const PROFILE_LINKS = Astro.locals.portfolio.site.socialLinks.filter(
+  link => link.showInProfile
+);
+
+import VerifiedIcon from "@/components/ui/icons/verified.astro";
+import PronounceName from "@/components/ui/pronounce-name.astro";
+import { EncryptedText } from "@/components/ui/encrypted-text";
+import { LinkPreview } from "@/components/ui/link-preview";
+
+---
+
+<!--
+  Every size in this card is the original scaled by 1.2. Exact multiples are used
+  rather than the nearest Tailwind step, because snapping would grow the name by 25%
+  and the role by 14% and the card would read unevenly. The card's own padding and
+  border stay put so it keeps lining up with the column borders above and below.
+-->
+<div class="screen-line-after relative flex items-center p-4 md:border-x">
+  <div class="shrink-0">
+    <div class="relative z-1 mx-[0.15rem] my-[0.3rem]">
+      <Avatar
+        priority
+        className="size-[6.8rem] rounded-full ring-1 ring-border ring-offset-[0.2rem] ring-offset-background sm:size-[9.2rem]"
+      />
+    </div>
+  </div>
+
+  <div class="flex flex-1 flex-col">
+    <div class="flex grow items-end pb-[0.3rem] pl-[1.2rem]">
+      <div
+        class="line-clamp-1 font-mono text-[0.9rem]/[1.2rem] text-muted-foreground"
+      >
+        {
+          PROFILE_INFO.slogan && (
+            <EncryptedText
+              client:load
+              text={PROFILE_INFO.slogan}
+              encryptedClassName="opacity-50"
+              revealDelayMs={50}
+              flipDelayMs={50}
+            />
+          )
+        }
+      </div>
+    </div>
+
+    <div>
+      <h1
+        class="flex items-center gap-x-[0.3rem] pl-[1.2rem] sm:gap-x-[0.6rem] text-[1.8rem]/[2.4rem] font-medium tracking-[-0.025em]"
+      >
+        {PROFILE_INFO.displayName}
+        {
+          PROFILE_INFO.verified && (
+            <VerifiedIcon class="size-[1.2rem] text-blue-500" />
+          )
+        }
+        {
+          PROFILE_INFO.namePronunciation && (
+            <PronounceName
+              src={PROFILE_INFO.namePronunciation}
+              name={PROFILE_INFO.displayName}
+            />
+          )
+        }
+      </h1>
+
+      <div class="py-[0.3rem] pl-[1.2rem]">
+        <p class="text-[1.05rem]/[1.5rem] !font-normal text-balance">
+          {PROFILE_INFO.role}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{
+  /* Callout badge
+<div
+  class="screen-line-after inline-flex w-full items-center gap-2 border-x bg-yellow-100 px-3 py-2 text-sm font-semibold dark:bg-yellow-500/10"
+>
+  <span class="animate-bounce text-base">👋</span> I'm open to new opportunities
+  —
+  <a href={`mailto:${PROFILE_INFO.email}`} class="underline underline-offset-4">
+    get in touch
+  </a>
+</div>
+ */
+}
+
+<Box className="profile-overview grid md:grid-cols-2">
+  <BoxContent className="flex min-w-0 flex-col justify-center gap-3">
+    {
+      PROFILE_LINKS.map(link => (
+        <span class="flex min-h-6 items-center justify-start gap-3">
+          <IconTile>
+            <CmsIcon name={link.icon} image={link.image} />
+          </IconTile>
+          <span class="min-w-0">
+            {link.prefix && `${link.prefix.trim()} `}
+            {link.showPreview !== false && /^https?:\/\//.test(link.href) ? (
+              <LinkPreview
+                client:visible
+                url={link.href}
+                imageSrc={link.previewImage}
+                className="underline underline-offset-4"
+              >
+                {link.label}
+              </LinkPreview>
+            ) : (
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline underline-offset-4"
+              >
+                {link.label}
+              </a>
+            )}
+            {link.suffix && ` ${link.suffix.trim()}`}
+          </span>
+        </span>
+      ))
+    }
+  </BoxContent>
+  <div class="min-w-0 border-t md:border-t-0 md:border-l">
+    <ProfileDetails />
+  </div>
+</Box>

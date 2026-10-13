@@ -1,0 +1,315 @@
+---
+/**
+ * The closing contact block above the footer: ways to get in touch on the left, a
+ * message form on the right. Laid out in the site's own grid (dashed rules, icon
+ * tiles) rather than as floating cards. Everything is edited in the CMS under
+ * Website settings → Call to action; messages arrive in Content Manager → Messages.
+ */
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import Box from "@/components/box/index.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxTitle from "@/components/box/title.astro";
+import IconTile from "@/components/ui/icon-tile.astro";
+import CmsIcon from "@/components/ui/cms-icon.astro";
+
+const { cta } = Astro.locals.portfolio.site;
+const methods = (cta?.methods ?? []).filter((method: any) => method.title && method.href);
+const showForm = cta?.formEnabled !== false;
+const safeHref = (href: string) =>
+  /^(https?:\/\/|mailto:|tel:|\/|#)/i.test(href) ? href : undefined;
+---
+
+{
+  cta && cta.enabled !== false && (
+    <Box id="contact">
+      {/* Same title treatment as every other section on the page. */}
+      <BoxHeader>
+        <BoxTitle>{cta.eyebrow || "Let's work together"}</BoxTitle>
+      </BoxHeader>
+
+      <div class:list={["grid", showForm && "md:grid-cols-2"]}>
+        <div class="flex min-w-0 flex-col">
+          <div class="px-4 pt-2 pb-4">
+            <h3 class="text-lg font-medium tracking-[-0.02em]">{cta.heading}</h3>
+            {cta.description && (
+              <p class="mt-1.5 text-[0.9375rem] leading-6 text-pretty text-muted-foreground">
+                {cta.description}
+              </p>
+            )}
+          </div>
+
+          {methods.length > 0 && (
+            <ul class="contact-methods">
+              {methods.map((method: any) => (
+                <li>
+                  <a
+                    class="contact-method"
+                    href={safeHref(method.href)}
+                    target={method.newTab ? "_blank" : undefined}
+                    rel={method.newTab ? "noopener noreferrer" : undefined}
+                  >
+                    <IconTile className="size-8 rounded-lg">
+                      <CmsIcon name={method.icon} className="size-4" />
+                    </IconTile>
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-sm font-medium">{method.title}</span>
+                      {method.subtitle && (
+                        <span class="block truncate text-[0.8125rem] text-muted-foreground">
+                          {method.subtitle}
+                        </span>
+                      )}
+                    </span>
+                    <ArrowUpRight className="contact-arrow size-4 shrink-0" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+
+        </div>
+
+        {showForm && (
+          <div class="min-w-0 border-t px-4 pt-4 pb-5 md:border-t-0 md:border-l md:pt-2">
+            <h3 class="text-lg font-medium tracking-[-0.02em]">
+              {cta.formHeading || "Send a message"}
+            </h3>
+            {cta.formDescription && (
+              <p class="mt-1.5 text-[0.9375rem] leading-6 text-pretty text-muted-foreground">
+                {cta.formDescription}
+              </p>
+            )}
+
+            <contact-form data-success={cta.formSuccess || "Thanks — your message is in."}>
+              <form class="mt-4 flex flex-col gap-2.5" novalidate>
+                <label class="sr-only" for="contact-name">Full name</label>
+                <input
+                  id="contact-name"
+                  class="contact-field"
+                  name="name"
+                  autocomplete="name"
+                  placeholder="Full name"
+                  required
+                  maxlength="100"
+                />
+                <label class="sr-only" for="contact-email">Email address</label>
+                <input
+                  id="contact-email"
+                  class="contact-field"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="Email address"
+                  required
+                  maxlength="200"
+                />
+                <label class="sr-only" for="contact-message">Your message</label>
+                <textarea
+                  id="contact-message"
+                  class="contact-field min-h-32 resize-y"
+                  name="message"
+                  placeholder="Your message"
+                  required
+                  minlength="10"
+                  maxlength="5000"
+                  rows="5"
+                />
+                {/* Honeypot: hidden from people, filled in by bots. */}
+                <input
+                  class="contact-trap"
+                  name="company"
+                  tabindex="-1"
+                  autocomplete="off"
+                  aria-hidden="true"
+                />
+                <p class="contact-status" role="status" aria-live="polite" />
+                <button type="submit" class="contact-submit">
+                  <span data-label>{cta.formButton || "Send message"}</span>
+                  <ArrowRight className="size-4" />
+                </button>
+              </form>
+              <div class="contact-done" hidden>
+                <p class="text-sm">{cta.formSuccess}</p>
+              </div>
+            </contact-form>
+          </div>
+        )}
+      </div>
+    </Box>
+  )
+}
+
+<style>
+  .contact-methods > li {
+    border-top: 1px dashed hsl(var(--border));
+  }
+  .contact-methods > li:last-child {
+    border-bottom: 1px dashed hsl(var(--border));
+  }
+  .contact-method {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.875rem 1rem;
+    transition: background-color 150ms ease;
+  }
+  .contact-method:hover {
+    background: hsl(var(--accent) / 0.5);
+  }
+  .contact-method:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: -2px;
+  }
+  .contact-method :global(.contact-arrow) {
+    color: hsl(var(--muted-foreground));
+    transition:
+      transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      color 150ms ease;
+  }
+  .contact-method:hover :global(.contact-arrow) {
+    color: hsl(var(--foreground));
+    transform: translate(2px, -2px);
+  }
+
+  .contact-field {
+    width: 100%;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    background: hsl(var(--background));
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+  .contact-field::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+  .contact-field:focus {
+    outline: none;
+    border-color: hsl(var(--ring) / 0.6);
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.12);
+  }
+  .contact-field[aria-invalid="true"] {
+    border-color: hsl(var(--destructive));
+  }
+  .contact-trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+  .contact-status:empty {
+    display: none;
+  }
+  .contact-status {
+    font-size: 0.8125rem;
+    color: hsl(var(--destructive));
+  }
+  .contact-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    margin-top: 0.25rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    background: hsl(var(--background));
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      background-color 150ms ease,
+      transform 150ms ease;
+  }
+  .contact-submit:hover {
+    background: hsl(var(--accent));
+  }
+  .contact-submit:active {
+    transform: scale(0.99);
+  }
+  .contact-submit:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  .contact-submit:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+  .contact-done {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px dashed hsl(var(--border));
+    border-radius: 0.5rem;
+  }
+</style>
+
+<script>
+  class ContactForm extends HTMLElement {
+    connectedCallback() {
+      const form = this.querySelector("form")!;
+      const status = this.querySelector<HTMLElement>(".contact-status")!;
+      const button = this.querySelector<HTMLButtonElement>(".contact-submit")!;
+      const label = button.querySelector<HTMLElement>("[data-label]")!;
+      const idle = label.textContent;
+
+      const fail = (text: string, field?: string) => {
+        status.textContent = text;
+        if (field) {
+          const input = form.elements.namedItem(field) as HTMLInputElement | null;
+          input?.setAttribute("aria-invalid", "true");
+          input?.focus();
+        }
+      };
+
+      form.addEventListener("input", event => {
+        (event.target as HTMLElement).removeAttribute("aria-invalid");
+        status.textContent = "";
+      });
+
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
+        status.textContent = "";
+        const invalid = [...form.querySelectorAll<HTMLInputElement>(".contact-field")].find(
+          field => !field.checkValidity()
+        );
+        if (invalid) {
+          const messages: Record<string, string> = {
+            name: "Please enter your name.",
+            email: "Please enter a valid email address.",
+            message: "Please write at least a sentence.",
+          };
+          return fail(messages[invalid.name], invalid.name);
+        }
+
+        button.disabled = true;
+        label.textContent = "Sending…";
+        try {
+          let timeZone = "";
+          try { timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { /* Optional browser detail. */ }
+          const response = await fetch("/api/contact", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...Object.fromEntries(new FormData(form)), timeZone }),
+          });
+          const result = await response.json().catch(() => ({}));
+          if (response.ok && result.ok) {
+            form.hidden = true;
+            this.querySelector<HTMLElement>(".contact-done")!.hidden = false;
+            return;
+          }
+          const [field, text] = Object.entries(result.errors ?? {})[0] ?? [];
+          fail((text as string) || result.error || "Could not send right now. Please email me instead.", field);
+        } catch {
+          fail("Could not send right now. Please email me instead.");
+        } finally {
+          button.disabled = false;
+          label.textContent = idle;
+        }
+      });
+    }
+  }
+  if (!customElements.get("contact-form")) customElements.define("contact-form", ContactForm);
+</script>

@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_portfolio_avatar_variants",
+  "info": { "displayName": "Avatar variant", "description": "Another portrait in the photo switcher, with its matching T-shirt." },
+  "attributes": {
+    "key": { "type": "string", "required": true, "maxLength": 40 },
+    "label": { "type": "string", "required": true, "maxLength": 80 },
+    "enabled": { "type": "boolean", "default": true },
+    "avatar": { "type": "media", "multiple": false, "required": true, "allowedTypes": ["images"] },
+    "avatarDark": { "type": "media", "multiple": false, "allowedTypes": ["images"] },
+    "shirt": { "type": "component", "component": "portfolio.avatar-shirt", "repeatable": false },
+    "imageScale": { "type": "decimal", "default": 1, "min": 0.5, "max": 3 },
+    "imageOriginY": { "type": "integer", "default": 50, "min": 0, "max": 100 }
+  }
+}

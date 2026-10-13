@@ -1,0 +1,111 @@
+---
+import { renderMarkdown } from '@/lib/cms-markdown';
+import { pageMetadata } from '@/lib/seo';
+const { post } = Astro.props;
+const p = Astro.locals.portfolio;
+const labels = p.site.articleLabels || {};
+const exercise = post.data.exercise;
+const question = exercise?.question ? renderMarkdown(exercise.question).html : '';
+const answer = exercise?.answer ? renderMarkdown(exercise.answer).html : '';
+const dialogId = `answer-${post.id}`;
+const titleId = `${dialogId}-title`;
+const metadata = pageMetadata(p, Astro.url.pathname);
+const link = metadata.canonical;
+const shareText = `${post.data.title}\n${link}`;
+const channels = [
+  labels.shareWhatsApp !== false && { label: labels.shareWhatsAppLabel, href: `https://wa.me/?text=${encodeURIComponent(shareText)}` },
+  labels.shareLinkedIn !== false && { label: labels.shareLinkedInLabel, href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}` },
+  labels.shareX !== false && { label: labels.shareXLabel, href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(post.data.title)}&url=${encodeURIComponent(link)}` },
+  labels.shareEmail !== false && { label: labels.shareEmailLabel, href: `mailto:?subject=${encodeURIComponent(post.data.title)}&body=${encodeURIComponent(shareText)}` },
+].filter(Boolean);
+---
+<article-engagement data-url={link} data-title={post.data.title} data-copied={labels.copiedLinkLabel} data-copy-failed={labels.copyFailedLabel}>
+  {question && <section class="article-exercise" aria-labelledby="try-it-yourself">
+    <h2 id="try-it-yourself">{labels.exerciseHeading}</h2>
+    <div set:html={question} />
+    {answer && <>
+      <button type="button" class="article-action" data-reveal aria-haspopup="dialog" aria-controls={dialogId}>{labels.revealAnswerLabel}</button>
+      <dialog id={dialogId} aria-labelledby={titleId} class="article-answer-dialog">
+        <div class="article-answer-heading">
+          <h2 id={titleId}>{labels.solutionHeading}</h2>
+          <form method="dialog"><button class="article-action" aria-label={labels.closeAnswerLabel}>{labels.closeAnswerLabel}</button></form>
+        </div>
+        <div class="prose article-answer-content" set:html={answer} />
+      </dialog>
+      <noscript><details><summary>{labels.revealAnswerLabel}</summary><div set:html={answer} /></details></noscript>
+    </>}
+  </section>}
+  {labels.showShareSection !== false && <section class="article-share" aria-labelledby="share-this-article">
+    <h2 id="share-this-article">{labels.shareHeading}</h2>
+    {labels.shareDescription && <p>{labels.shareDescription}</p>}
+    <div class="article-share-actions">
+      <button type="button" class="article-action" data-copy-link>{labels.copyLinkLabel}</button>
+      {labels.shareNative !== false && <button type="button" class="article-action" data-share-native hidden>{labels.shareNativeLabel}</button>}
+      {channels.map(channel => <a class="article-action" href={channel.href} target={channel.href.startsWith('mailto:') ? undefined : '_blank'} rel="noopener noreferrer">{channel.label}</a>)}
+    </div>
+    <p class="article-share-status" data-share-status role="status" aria-live="polite"></p>
+    <input hidden data-share-url value={link} readonly aria-label={labels.copyLinkLabel} />
+  </section>}
+</article-engagement>
+
+<style>
+  article-engagement { display: block; }
+  .article-exercise, .article-share { margin-top: 2.5rem; border-top: 1px dashed hsl(var(--border)); padding-top: 1.5rem; }
+  .article-share-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .article-action { display: inline-flex; align-items: center; justify-content: center; border: 1px solid hsl(var(--border)); border-radius: .45rem; padding: .5rem .8rem; font: inherit; font-size: .8rem; color: hsl(var(--foreground)); background: hsl(var(--background)); cursor: pointer; text-decoration: none; line-height: 1.4; }
+  .article-action:hover { background: hsl(var(--muted)); }
+  .article-action:focus-visible { outline: 2px solid hsl(var(--foreground)); outline-offset: 3px; }
+  [hidden] { display: none !important; }
+  .article-answer-dialog { width: min(44rem, calc(100vw - 2rem)); max-height: calc(100dvh - 3rem); margin: auto; border: 1px solid hsl(var(--border)); border-radius: .8rem; padding: 1.5rem; color: hsl(var(--foreground)); background: hsl(var(--background)); overflow-y: auto; overscroll-behavior: contain; }
+  .article-answer-dialog::backdrop { background: rgb(0 0 0 / .65); }
+  .article-answer-heading { display: flex; align-items: start; justify-content: space-between; gap: 1rem; border-bottom: 1px dashed hsl(var(--border)); padding-bottom: 1rem; }
+  .article-answer-heading h2 { margin: 0 !important; font-size: 1.15rem; }
+  .article-answer-heading form { margin: 0; flex-shrink: 0; }
+  .article-answer-content { padding-top: .5rem; }
+  .article-share-status { margin: .5rem 0 0 !important; min-height: 1.5rem; font-size: .8rem !important; color: hsl(var(--muted-foreground)) !important; }
+  [data-share-url] { width: 100%; border: 1px solid hsl(var(--border)); border-radius: .4rem; padding: .5rem; font-size: .8rem; }
+  @media (max-width: 480px) { .article-answer-dialog { padding: 1rem; } .article-answer-heading { flex-direction: column; } }
+</style>
+
+<script>
+  class ArticleEngagement extends HTMLElement {
+    private events?: AbortController;
+    connectedCallback() {
+      this.events?.abort();
+      this.events = new AbortController();
+      const { signal } = this.events;
+      const dialog = this.querySelector<HTMLDialogElement>('dialog');
+      const reveal = this.querySelector<HTMLButtonElement>('[data-reveal]');
+      reveal?.addEventListener('click', () => dialog?.showModal(), { signal });
+      // Safari does not always focus a button when it is clicked. Restore the
+      // opener explicitly after either Escape, the close button or a backdrop click.
+      dialog?.addEventListener('close', () => { if (this.isConnected) reveal?.focus({preventScroll:true}); }, { signal });
+      dialog?.addEventListener('click', event => {
+        if (event.target !== dialog) return;
+        const rect = dialog.getBoundingClientRect();
+        if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+      }, { signal });
+      this.querySelector('[data-copy-link]')?.addEventListener('click', async () => {
+        const status = this.querySelector<HTMLElement>('[data-share-status]');
+        try {
+          await navigator.clipboard.writeText(this.dataset.url || '');
+          if (status) status.textContent = this.dataset.copied || '';
+        } catch {
+          const input = this.querySelector<HTMLInputElement>('[data-share-url]');
+          if (input) { input.hidden = false; input.focus(); input.select(); }
+          if (status) status.textContent = this.dataset.copyFailed || '';
+        }
+      }, { signal });
+      const native = this.querySelector<HTMLButtonElement>('[data-share-native]');
+      if (native && typeof navigator.share === 'function') {
+        native.hidden = false;
+        native.addEventListener('click', async () => {
+          try { await navigator.share({ title: this.dataset.title, url: this.dataset.url }); }
+          catch { /* Cancellation leaves the article in place. */ }
+        }, { signal });
+      }
+    }
+    disconnectedCallback() { this.events?.abort(); this.querySelector<HTMLDialogElement>('dialog')?.close(); }
+  }
+  if (!customElements.get('article-engagement')) customElements.define('article-engagement', ArticleEngagement);
+</script>

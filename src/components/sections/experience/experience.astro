@@ -1,0 +1,21 @@
+---
+import Box from "@/components/box/index.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxTitle from "@/components/box/title.astro";
+import ExperienceItem from "./experience-item.astro";
+
+const labels = Astro.locals.portfolio.site.sectionLabels;
+const EXPERIENCES = Astro.locals.portfolio.experiences;
+---
+
+<Box id="experience">
+  <BoxHeader>
+    <BoxTitle>{labels.experience}</BoxTitle>
+  </BoxHeader>
+
+  {
+    EXPERIENCES.map((experience: any) => (
+      <ExperienceItem experience={experience} />
+    ))
+  }
+</Box>

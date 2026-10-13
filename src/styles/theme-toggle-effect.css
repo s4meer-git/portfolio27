@@ -1,0 +1,36 @@
+/* Adapted from ncdai/chanhdai.com (MIT). See docs/third-party/sources.md. */
+
+/*
+  Two changes from the reference make the reveal smooth rather than jerky:
+
+  1. The triangle grows only as far as it needs to. Upstream grows it to 300vmax, but
+     the viewport is fully covered at about 175vw + 100vh (the triangle's side slope
+     is 20:35), so most of the old animation ran after the screen was already covered,
+     and the visible part was squeezed into its first, fastest moments.
+  2. It eases out over that visible distance and the mask is promoted to its own
+     layer, so the one thing painting each frame is the mask.
+*/
+html[data-theme-transition]::view-transition-old(root) {
+  animation: none;
+  z-index: -1;
+}
+
+html[data-theme-transition]::view-transition-new(root) {
+  mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="m20 0 20 35H0z" fill="white"/></svg>')
+    center / 0 no-repeat;
+  animation: theme-triangle-reveal 0.65s cubic-bezier(0.32, 0.72, 0, 1) both;
+  will-change: mask-size;
+}
+
+@keyframes theme-triangle-reveal {
+  to {
+    mask-size: calc(175vw + 100vh + 2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme-transition]::view-transition-new(root) {
+    animation: none;
+    mask: none;
+  }
+}

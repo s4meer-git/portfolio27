@@ -1,0 +1,12 @@
+{
+  "collectionName": "components_portfolio_tag",
+  "info": {
+    "displayName": "Tag"
+  },
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

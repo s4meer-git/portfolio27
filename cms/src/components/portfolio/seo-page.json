@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_portfolio_seo_page",
+  "info": {
+    "displayName": "Page override"
+  },
+  "attributes": {
+    "path": {
+      "type": "string",
+      "required": true
+    },
+    "metadata": {
+      "type": "component",
+      "component": "portfolio.page-seo",
+      "repeatable": false
+    }
+  }
+}

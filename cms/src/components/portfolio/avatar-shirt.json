@@ -1,0 +1,10 @@
+{
+  "collectionName": "components_portfolio_avatar_shirts",
+  "info": { "displayName": "T-shirt", "description": "The colour and logo of this portrait's hanging T-shirt." },
+  "attributes": {
+    "color": { "type": "string", "default": "#17171a", "maxLength": 7 },
+    "logo": { "type": "media", "multiple": false, "allowedTypes": ["images", "files"] },
+    "logoWidth": { "type": "integer", "default": 24, "min": 1, "max": 32 },
+    "logoHeight": { "type": "integer", "default": 24, "min": 1, "max": 32 }
+  }
+}

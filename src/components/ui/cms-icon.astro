@@ -1,0 +1,93 @@
+---
+/**
+ * Renders whichever icon an editor picked in the CMS.
+ *
+ * Three sources, in priority order: an uploaded image, an interface icon from
+ * lucide (role and school icons), then a brand logo. The brand set is
+ * `developer-icons` plus the handful of marks this site draws itself.
+ */
+import * as DeveloperIcons from "developer-icons";
+import * as LucideIcons from "lucide-react";
+import Github from "./icons/github.astro";
+import Linkedin from "./icons/linkedin.astro";
+import X from "./icons/x.astro";
+import HonoIcon from "./icons/hono.astro";
+import FastapiIcon from "./icons/fastapi.astro";
+import Celery from "./icons/celery.astro";
+import LangChain from "./icons/langchain.astro";
+import LangGraph from "./icons/langgraph.astro";
+import ModelContextProtocol from "./icons/mcp.astro";
+import Qdrant from "./icons/qdrant.astro";
+import Chroma from "./icons/chroma.astro";
+import GoogleGemini from "./icons/gemini.astro";
+import GitHubActions from "./icons/github-actions.astro";
+import NumPy from "./icons/numpy.astro";
+import Matplotlib from "./icons/matplotlib.astro";
+import OpenAIIcon from "./icons/openai.astro";
+import SQLIcon from "./icons/sql.astro";
+import Pandas from "./icons/pandas.astro";
+import Cursor from "./icons/cursor.astro";
+import ClaudeIcon from "./icons/claude.astro";
+import DjangoIcon from "./icons/django.astro";
+import FlaskIcon from "./icons/flask.astro";
+import NextJsIcon from "./icons/nextjs.astro";
+import VercelIcon from "./icons/vercel.astro";
+import { Link } from "lucide-react";
+import { ROLE_ICON_NAMES } from "@/lib/role-icons";
+import { mediaUrl } from "@/lib/cms";
+
+interface Props {
+  name?: string | null;
+  image?: unknown;
+  className?: string;
+  fallback?: string;
+}
+
+const { name, image, className = "size-4", fallback } = Astro.props;
+
+const brandIcons = {
+  ...DeveloperIcons,
+  Github,
+  Linkedin,
+  X,
+  HonoIcon,
+  FastapiIcon,
+  Celery,
+  LangChain,
+  LangGraph,
+  ModelContextProtocol,
+  Qdrant,
+  Chroma,
+  GoogleGemini,
+  GitHubActions,
+  NumPy,
+  Matplotlib,
+  OpenAIIcon,
+  SQLIcon,
+  Pandas,
+  Cursor,
+  ClaudeIcon,
+  DjangoIcon,
+  FlaskIcon,
+  NextJsIcon,
+  VercelIcon,
+};
+const isRoleIcon = (value?: string | null): value is string =>
+  !!value && (ROLE_ICON_NAMES as readonly string[]).includes(value);
+
+const chosen = name || fallback;
+const Icon = isRoleIcon(chosen)
+  ? (LucideIcons as Record<string, any>)[chosen]
+  : ((brandIcons as Record<string, any>)[chosen as string] ??
+    (isRoleIcon(fallback)
+      ? (LucideIcons as Record<string, any>)[fallback]
+      : Link));
+---
+
+{
+  image ? (
+    <img src={mediaUrl(image)} alt="" class={className} />
+  ) : (
+    <Icon className={className} />
+  )
+}

@@ -1,0 +1,59 @@
+<!-- Outlines extracted from public/fonts/4x4-font.ttf; same glyphs and spacing as the navbar. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 -6 237 112" fill="none" aria-hidden="true">
+  <defs>
+    <path id="sc-loader-outline" d="M0,25.031L24.969,25.031L24.969,0L100,0L100,25.031L74.969,25.031L74.969,50L0,50Z M0,75.031L74.969,75.031L74.969,100L0,100Z M74.969,50L100,50L100,75.031L74.969,75.031Z M125,25.031L149.969,25.031L149.969,75.031L125,75.031Z M149.969,0L199.969,0L199.969,25.031L149.969,25.031Z M149.969,75.031L225,75.031L225,100L149.969,100Z M199.969,25.031L225,25.031L225,50L199.969,50Z" />
+    <path id="sc-loader-route" d="M0,25.031L24.969,25.031L24.969,0L100,0L100,25.031L74.969,25.031L74.969,50L100,50L100,75.031L74.969,75.031L0,75.031L0,100L74.969,100L74.969,75.031L74.969,50L0,50L0,25.031L-6,25.031L-6,-6L125,-6L125,25.031L149.969,25.031L149.969,0L199.969,0L199.969,25.031L225,25.031L225,50L199.969,50L199.969,25.031L149.969,25.031L149.969,75.031L225,75.031L225,100L149.969,100L149.969,75.031L125,75.031L125,25.031L119,25.031L119,106L-6,106L-6,25.031L0,25.031" pathLength="1000" />
+    <mask id="sc-loader-mask" maskUnits="userSpaceOnUse" x="-6" y="-6" width="237" height="112">
+      <use href="#sc-loader-outline" stroke="white" stroke-width="2.142857" />
+    </mask>
+    <filter id="sc-loader-glow" x="-10%" y="-20%" width="120%" height="140%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceGraphic" stdDeviation=".65" result="core" />
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="glow" />
+      <feComponentTransfer in="glow" result="soft-glow"><feFuncA type="linear" slope=".7" /></feComponentTransfer>
+      <feMerge><feMergeNode in="soft-glow" /><feMergeNode in="core" /></feMerge>
+    </filter>
+  </defs>
+  <use href="#sc-loader-outline" class="loader-outline" />
+  <g class="loader-trail" filter="url(#sc-loader-glow)">
+    <g mask="url(#sc-loader-mask)"><use href="#sc-loader-route" class="loader-beam" style="--trail:17.000000;--beam-length:72.100000;--beam-gap:927.900000;opacity:0.000625" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:16.564103;--beam-length:70.356410;--beam-gap:929.643590;opacity:0.001876" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:16.128205;--beam-length:68.612821;--beam-gap:931.387179;opacity:0.003133" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:15.692308;--beam-length:66.869231;--beam-gap:933.130769;opacity:0.004400" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:15.256410;--beam-length:65.125641;--beam-gap:934.874359;opacity:0.005682" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:14.820513;--beam-length:63.382051;--beam-gap:936.617949;opacity:0.006984" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:14.384615;--beam-length:61.638462;--beam-gap:938.361538;opacity:0.008312" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:13.948718;--beam-length:59.894872;--beam-gap:940.105128;opacity:0.009671" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:13.512821;--beam-length:58.151282;--beam-gap:941.848718;opacity:0.011068" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:13.076923;--beam-length:56.407692;--beam-gap:943.592308;opacity:0.012508" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:12.641026;--beam-length:54.664103;--beam-gap:945.335897;opacity:0.014000" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:12.205128;--beam-length:52.920513;--beam-gap:947.079487;opacity:0.015551" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:11.769231;--beam-length:51.176923;--beam-gap:948.823077;opacity:0.017170" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:11.333333;--beam-length:49.433333;--beam-gap:950.566667;opacity:0.018868" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:10.897436;--beam-length:47.689744;--beam-gap:952.310256;opacity:0.020655" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:10.461538;--beam-length:45.946154;--beam-gap:954.053846;opacity:0.022545" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:10.025641;--beam-length:44.202564;--beam-gap:955.797436;opacity:0.024554" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:9.589744;--beam-length:42.458974;--beam-gap:957.541026;opacity:0.026697" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:9.153846;--beam-length:40.715385;--beam-gap:959.284615;opacity:0.028997" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:8.717949;--beam-length:38.971795;--beam-gap:961.028205;opacity:0.031477" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:8.282051;--beam-length:37.228205;--beam-gap:962.771795;opacity:0.034167" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:7.846154;--beam-length:35.484615;--beam-gap:964.515385;opacity:0.037101" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:7.410256;--beam-length:33.741026;--beam-gap:966.258974;opacity:0.040323" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:6.974359;--beam-length:31.997436;--beam-gap:968.002564;opacity:0.043884" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:6.538462;--beam-length:30.253846;--beam-gap:969.746154;opacity:0.047852" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:6.102564;--beam-length:28.510256;--beam-gap:971.489744;opacity:0.052308" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:5.666667;--beam-length:26.766667;--beam-gap:973.233333;opacity:0.057359" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:5.230769;--beam-length:25.023077;--beam-gap:974.976923;opacity:0.063146" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:4.794872;--beam-length:23.279487;--beam-gap:976.720513;opacity:0.069853" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:4.358974;--beam-length:21.535897;--beam-gap:978.464103;opacity:0.077734" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:3.923077;--beam-length:19.792308;--beam-gap:980.207692;opacity:0.087143" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:3.487179;--beam-length:18.048718;--beam-gap:981.951282;opacity:0.098592" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:3.051282;--beam-length:16.305128;--beam-gap:983.694872;opacity:0.112847" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:2.615385;--beam-length:14.561538;--beam-gap:985.438462;opacity:0.131115" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:2.179487;--beam-length:12.817949;--beam-gap:987.182051;opacity:0.155405" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:1.743590;--beam-length:11.074359;--beam-gap:988.925641;opacity:0.189333" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:1.307692;--beam-length:9.330769;--beam-gap:990.669231;opacity:0.240132" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:0.871795;--beam-length:7.587179;--beam-gap:992.412821;opacity:0.324675" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:0.435897;--beam-length:5.843590;--beam-gap:994.156410;opacity:0.493590" />
+<use href="#sc-loader-route" class="loader-beam" style="--trail:0.000000;--beam-length:4.100000;--beam-gap:995.900000;opacity:1.000000" /></g>
+  </g>
+</svg>

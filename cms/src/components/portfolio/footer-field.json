@@ -1,0 +1,41 @@
+{
+  "collectionName": "components_portfolio_footer_field",
+  "info": {
+    "displayName": "Footer cell",
+    "description": "One cell in the footer grid. Drag to reorder."
+  },
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "kind": {
+      "type": "enumeration",
+      "enum": [
+        "links",
+        "build",
+        "date",
+        "source",
+        "stack",
+        "content-count",
+        "inspiration"
+      ],
+      "default": "links",
+      "required": true
+    },
+    "width": {
+      "type": "enumeration",
+      "enum": [
+        "one",
+        "two",
+        "full"
+      ],
+      "default": "one"
+    },
+    "links": {
+      "type": "component",
+      "component": "portfolio.footer-link",
+      "repeatable": true
+    }
+  }
+}

@@ -1,0 +1,13 @@
+---
+interface Props {
+  className?: string;
+  /** Anchor for links such as /#experience (used by the command menu). */
+  id?: string;
+}
+
+const { className, id } = Astro.props;
+---
+
+<section id={id} class:list={["scroll-mt-16 md:border-x", className]}>
+  <slot />
+</section>

@@ -1,0 +1,427 @@
+---
+import { portraitDefinitions, portraitImageUrl } from "@/lib/portraits";
+const { className, size = 100, priority = false } = Astro.props;
+const profile = Astro.locals.portfolio.site.profile;
+const alt = profile.avatarAlt || profile.displayName;
+const portraits = portraitDefinitions(profile).map(item => ({ ...item,
+  light: portraitImageUrl(item.name, "light", item.lightVersion),
+  dark: portraitImageUrl(item.name, "dark", item.darkVersion),
+}));
+const first = portraits[0];
+const next = portraits[1] || first;
+---
+
+<portrait-switch class="portrait-switch" data-active={first.name} data-next={next.name}>
+  <div class:list={["portrait-frame", className]}>
+    <div class="portrait-crop">
+      <div class="portrait-images">
+      {portraits.map(({ name, label, light, dark, imageScale, imageOriginY }) => (
+        <div class="portrait-layer" data-portrait={name} data-label={label} aria-hidden={name !== first.name ? "true" : "false"}>
+          <img class="portrait-image" data-light-src={light} data-dark-src={dark} style={`--portrait-scale:${imageScale};--portrait-origin-y:${imageOriginY}%`} alt={`${alt} — ${label} portrait`} width={size} height={size} fetchpriority={priority && name === first.name ? "high" : "auto"} decoding="async" hidden />
+          {name === first.name && <noscript><img src={light} alt={alt} width={size} height={size} loading={priority ? "eager" : "lazy"} /></noscript>}
+        </div>
+      ))}
+      </div>
+      <div class="portrait-magic" aria-hidden="true">
+        <span class="portrait-swap-point"></span>
+        <span class="magic-veil"></span>
+        <span class="cloud cloud-one"></span>
+        <span class="cloud cloud-two"></span>
+        <span class="cloud cloud-three"></span>
+        <span class="fog-wisp fog-wisp-near"></span>
+        <span class="fog-wisp fog-wisp-far"></span>
+      </div>
+    </div>
+    <button class="portrait-photo-trigger" type="button" aria-label={`Change photo to ${next.label} portrait`} hidden></button>
+    <span class="portrait-orbit" aria-hidden="true"></span>
+    <button class="portrait-trigger" type="button" aria-label={`Switch to ${next.label} portrait`} hidden>
+      <span class="shirt-stack" aria-hidden="true">
+        {portraits.map(({ name, color, logo, logoWidth, logoHeight }, index) => (
+          <span class="shirt-item" data-shirt={name} data-position={index === 0 ? "front" : index === 1 ? "near" : index === 2 ? "far" : "hidden"} style={`--shirt-color:${color}`}>
+            <svg class="badge-shirt" viewBox="0 -14 64 78">
+              <g transform="translate(32 -10) scale(.92) translate(-32 10)">
+                <path class="hanger-outline" d="M27-5a5 5 0 0 1 10 0c0 4-5 4-5 8v7M32 8L10 21q-3 3 1 3h42q4 0 1-3Z" />
+                <path class="shirt-hanger" d="M27-5a5 5 0 0 1 10 0c0 4-5 4-5 8v7M32 8L10 21q-3 3 1 3h42q4 0 1-3Z" />
+              </g>
+              <path class="shirt-body" d="M22 8H26C26 17 38 17 38 8H42L46 11C43 20 44 26 50 29V54Q50 57 47 57H17Q14 57 14 54V29C20 26 21 20 18 11Z" />
+              <path class="shirt-collar" d="M26 16q6 7 12 0" />
+            </svg>
+            <span class={`badge-face badge-${name}`}>{logo && <img src={logo} width={logoWidth} height={logoHeight} style={`width:${logoWidth}px;height:${logoHeight}px;object-fit:contain`} alt="" />}</span>
+          </span>
+        ))}
+      </span>
+      <span class="portrait-hint" aria-hidden="true"><span data-portrait-hint>Try {next.label}</span><span class="hint-arrow">↗</span></span>
+    </button>
+  </div>
+  <span class="sr-only" role="status" aria-live="polite" data-portrait-status></span>
+  <script is:inline data-astro-rerun>
+    // Start only the visible theme's default portrait before module hydration.
+    // With no src on the alternatives, the preload scanner cannot fetch hidden portraits.
+    (() => {
+      const root = document.currentScript.closest("portrait-switch");
+      const img = root.querySelector('[aria-hidden="false"] .portrait-image');
+      const dark = document.documentElement.classList.contains("dark");
+      img.src = dark ? img.dataset.darkSrc : img.dataset.lightSrc;
+      img.dataset.theme = dark ? "dark" : "light";
+      img.hidden = false;
+    })();
+  </script>
+</portrait-switch>
+
+<style>
+  .portrait-switch { display: block; }
+  .portrait-frame { position: relative; isolation: isolate; }
+  .portrait-crop { position: absolute; inset: 0; overflow: hidden; contain: paint; border-radius: inherit; background: hsl(var(--muted)); }
+  .portrait-images { position: absolute; inset: 0; }
+  .portrait-layer { position: absolute; inset: 0; opacity: 0; visibility: hidden; }
+  .portrait-layer[aria-hidden="false"] { opacity: 1; visibility: visible; }
+  .portrait-layer img { width: 100%; height: 100%; object-fit: cover; }
+  .portrait-image { transform: scale(var(--portrait-scale, 1)); transform-origin: 50% var(--portrait-origin-y, 50%); }
+  .portrait-image[hidden] { display: none; }
+  .portrait-photo-trigger { position: absolute; inset: 0; z-index: 2; border-radius: inherit; background: transparent; cursor: pointer; }
+  .portrait-photo-trigger[hidden] { display: none; }
+  .portrait-photo-trigger:focus-visible { outline: 2px solid hsl(var(--foreground)); outline-offset: 6px; }
+  .portrait-orbit { position: absolute; inset: -5px; border-radius: 50%; border: 1px solid transparent; pointer-events: none; transition: border-color .3s, box-shadow .3s; }
+  .portrait-frame:has(.portrait-photo-trigger:hover) .portrait-orbit,
+  .portrait-frame:has(.portrait-photo-trigger:focus-visible) .portrait-orbit,
+  .portrait-frame:has(.portrait-trigger:hover) .portrait-orbit,
+  .portrait-frame:has(.portrait-trigger:focus-visible) .portrait-orbit { border-color: #b6a5da; box-shadow: 0 0 16px #b6a5da25; }
+  .portrait-trigger {
+    position: absolute; z-index: 3; right: -4px; bottom: -4px; width: 56px; height: 56px;
+    border: 0; border-radius: 8px; background: transparent;
+    scale: .9;
+    transform: rotate(-9deg); cursor: pointer;
+    transition: transform .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .portrait-trigger[hidden] { display: none; }
+  .portrait-trigger:hover, .portrait-trigger:focus-visible { transform: translateY(-3px) rotate(0); }
+  .portrait-trigger:active { transform: scale(.96) rotate(0); }
+  .portrait-trigger:focus-visible { outline: 2px solid #a78bfa; outline-offset: 3px; }
+  .shirt-stack { position: absolute; inset: 0; pointer-events: none; }
+  /* Hook apex (32, -10) in the 64-unit shirt: all hangers share this pivot. */
+  .shirt-item { position: absolute; inset: 0; opacity: 0; transform-origin: 50% -15.625%; transition: opacity .25s; }
+  .shirt-item[data-position="front"] { z-index: 3; opacity: 1; }
+  .shirt-item[data-position="near"] { z-index: 2; }
+  .shirt-item[data-position="far"] { z-index: 1; }
+  .badge-shirt { position: absolute; left: 0; bottom: 0; width: 100%; height: 121.875%; overflow: visible; stroke-linejoin: round; filter: drop-shadow(0 2px 2px #0002); }
+  .shirt-hanger, .hanger-outline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .hanger-outline { stroke: hsl(var(--background)); stroke-width: 4; }
+  .shirt-hanger { stroke: hsl(var(--muted-foreground)); stroke-width: 1.8; }
+  .shirt-body { fill: var(--shirt-color); stroke: hsl(var(--background)); stroke-width: 2; }
+  :global(.dark) .shirt-body { stroke: hsl(var(--border)); }
+  .shirt-collar { fill: none; stroke: #fff; stroke-width: 1.1; opacity: .18; }
+  .badge-face { position: absolute; inset: 5px 0 0; display: grid; place-items: center; }
+  [data-peeking] .shirt-item[data-position="near"] { animation: shirt-peek-near 1600ms both; }
+  [data-peeking] .shirt-item[data-position="far"] { animation: shirt-peek-far 1600ms both; }
+  @keyframes shirt-peek-near {
+    0% { opacity: 0; transform: rotate(0); animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+    40%, 58% { opacity: 1; transform: rotate(-12deg); animation-timing-function: cubic-bezier(.45, 0, .2, 1); }
+    100% { opacity: 0; transform: rotate(0); }
+  }
+  @keyframes shirt-peek-far {
+    0%, 8% { opacity: 0; transform: rotate(0); animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+    46%, 58% { opacity: 1; transform: rotate(-24deg); animation-timing-function: cubic-bezier(.45, 0, .2, 1); }
+    100% { opacity: 0; transform: rotate(0); }
+  }
+  /* Part around the shared hook before changing the stack order, like the tickets. */
+  [data-shirt-swapping] .shirt-item { animation-play-state: paused; }
+  /* Three times faster; the midpoint still coincides with the 960ms photo swap. */
+  [data-shirt-swapping] .shirt-item[data-shirt-swap="incoming"] { animation: shirt-to-front 640ms 640ms both paused; }
+  [data-shirt-swapping] .shirt-item[data-shirt-swap="outgoing"] { animation: shirt-to-back 640ms 640ms both paused; }
+  [data-shirt-swapping] .shirt-item[data-shirt-swap="parked"] { animation: shirt-park 320ms 640ms both paused; }
+  [data-shirt-swapping][data-transforming] .shirt-item { animation-play-state: running; }
+  @keyframes shirt-to-front {
+    0% { transform: var(--shirt-from-transform); opacity: var(--shirt-from-opacity); animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+    40%, 50% { transform: rotate(-42deg); opacity: 1; animation-timing-function: cubic-bezier(.45, 0, .2, 1); }
+    100% { transform: rotate(0); opacity: 1; }
+  }
+  @keyframes shirt-to-back {
+    0% { transform: var(--shirt-from-transform); opacity: var(--shirt-from-opacity); animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+    40%, 50% { transform: rotate(30deg); opacity: 1; animation-timing-function: cubic-bezier(.45, 0, .2, 1); }
+    100% { transform: rotate(0); opacity: 0; }
+  }
+  @keyframes shirt-park {
+    from { transform: var(--shirt-from-transform); opacity: var(--shirt-from-opacity); }
+    to { transform: rotate(0); opacity: 0; }
+  }
+  .portrait-hint { position: absolute; bottom: calc(100% + 13px); right: 0; display: flex; align-items: center; gap: 12px; width: max-content; padding: 7px 10px; border-radius: 7px; background: hsl(var(--foreground)); color: hsl(var(--background)); font-family: var(--font-mono); font-size: 10px; line-height: 1.4; box-shadow: 0 3px 12px #0002; opacity: 0; transform: translateY(5px) rotate(9deg); pointer-events: none; transition: opacity .18s, transform .25s; }
+  .portrait-trigger:hover .portrait-hint, .portrait-trigger:focus-visible .portrait-hint { opacity: 1; transform: translateY(0); }
+  .hint-arrow { opacity: .5; }
+  [data-transforming] .portrait-hint { opacity: 0 !important; }
+  .portrait-magic { position: absolute; inset: 0; pointer-events: none; display: none; }
+  .portrait-swap-point { position: absolute; opacity: 0; }
+  .cloud { position: absolute; inset: -25%; border-radius: 50%; opacity: 0; background: center / contain no-repeat; }
+  .magic-veil { position: absolute; inset: -15%; background: #edf0f5; opacity: 0; }
+  .fog-wisp { position: absolute; inset: -30%; opacity: 0; background: center / contain no-repeat; }
+  [data-transforming] .portrait-magic { display: block; }
+  [data-transforming] .cloud { background-image: url('/portraits/fog-cloud.webp'); will-change: transform, opacity; }
+  [data-transforming] .fog-wisp { background-image: url('/portraits/fog-wisp.webp'); will-change: transform, opacity; }
+  [data-transforming] .cloud-one { animation: cloud-bloom 2200ms both; }
+  [data-transforming] .cloud-two { animation: cloud-counterflow 2200ms both; }
+  [data-transforming] .cloud-three { animation: cloud-drift 2200ms both; }
+  [data-transforming] .magic-veil { animation: magic-cover 2200ms both; }
+  [data-transforming] .portrait-swap-point { animation: swap-point 960ms linear both; }
+  [data-transforming] .fog-wisp-near { animation: fog-pass 2200ms both; }
+  [data-transforming] .fog-wisp-far { animation: fog-pass 2200ms both reverse; }
+  [data-transforming] .portrait-images { animation: portrait-focus 2200ms both; }
+  @keyframes swap-point { from { opacity: 0; } to { opacity: 0; } }
+  @keyframes cloud-bloom {
+    0% { opacity: 0; transform: translate(20%, 45%) scale(.65) rotate(-25deg); }
+    28% { opacity: .9; }
+    46% { opacity: 1; transform: translate(0, 0) scale(1.2) rotate(5deg); }
+    68% { opacity: .85; }
+    100% { opacity: 0; transform: translate(-20%, -35%) scale(1.6) rotate(40deg); }
+  }
+  @keyframes cloud-counterflow {
+    0% { opacity: 0; transform: translate(-35%, 15%) scale(.7) rotate(30deg); }
+    30% { opacity: .8; }
+    48% { opacity: 1; transform: translate(0, 0) scale(1.2) rotate(0deg); }
+    72% { opacity: .65; }
+    100% { opacity: 0; transform: translate(35%, -20%) scale(1.65) rotate(-35deg); }
+  }
+  @keyframes cloud-drift {
+    0% { opacity: 0; transform: translate(10%, -40%) scale(.6) rotate(20deg); }
+    36%, 54% { opacity: .95; transform: translate(0, 0) scale(1.2) rotate(-10deg); }
+    100% { opacity: 0; transform: translate(-25%, 35%) scale(1.6) rotate(-40deg); }
+  }
+  @keyframes fog-pass {
+    0% { opacity: 0; transform: translate(-35%, 25%) rotate(-25deg) scale(.8); }
+    35% { opacity: .5; }
+    55% { opacity: .8; }
+    100% { opacity: 0; transform: translate(35%, -30%) rotate(20deg) scale(1.5); }
+  }
+  @keyframes magic-cover { 0%, 10%, 88%, 100% { opacity: 0; } 36%, 54% { opacity: 1; } }
+  @keyframes portrait-focus { 0%, 92%, 100% { transform: scale(1); } 36%, 54% { transform: scale(1.045); } }
+  @media (max-width: 639px) { .portrait-trigger { right: -5px; bottom: -5px; width: 50px; height: 50px; } }
+  @media (hover: none) { .portrait-hint { display: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .portrait-trigger, .shirt-item, .portrait-hint, .portrait-orbit { transition: none; }
+    [data-peeking] .shirt-item { animation: none; }
+    [data-shirt-swapping] .shirt-item[data-shirt-swap] { animation: none; }
+    .portrait-magic { display: none; }
+    [data-transforming] .portrait-images { animation: none; }
+  }
+</style>
+
+<script>
+  class PortraitSwitch extends HTMLElement {
+    private controller?: AbortController;
+    private themeObserver?: MutationObserver;
+    private visibilityObserver?: IntersectionObserver;
+    private images = new Map<string, Promise<void>>();
+
+    private decode(src: string): Promise<void> {
+      const cached = this.images.get(src);
+      if (cached) return cached;
+      const image = new Image();
+      image.decoding = "async";
+      image.src = src;
+      // Remember readiness without retaining a second image element/decoded bitmap.
+      const request = image.decode().then(() => {}).catch(error => {
+        if (this.images.get(src) === request) this.images.delete(src);
+        throw error;
+      });
+      this.images.set(src, request);
+      return request;
+    }
+
+    connectedCallback() {
+      this.controller?.abort();
+      this.themeObserver?.disconnect();
+      this.visibilityObserver?.disconnect();
+      const controller = new AbortController();
+      this.controller = controller;
+      const { signal } = controller;
+      const button = this.querySelector<HTMLButtonElement>(".portrait-trigger")!;
+      const photoButton = this.querySelector<HTMLButtonElement>(".portrait-photo-trigger")!;
+      const controls = [button, photoButton];
+      controls.forEach(control => { control.hidden = false; control.removeAttribute("aria-disabled"); });
+      const status = this.querySelector<HTMLElement>("[data-portrait-status]")!;
+      const magic = this.querySelector<HTMLElement>(".portrait-magic")!;
+      const layers = Array.from(this.querySelectorAll<HTMLElement>("[data-portrait]"));
+      const shirts = Array.from(this.querySelectorAll<HTMLElement>("[data-shirt]"));
+      const switchEnabled = layers.length > 1;
+      controls.forEach(control => { control.hidden = !switchEnabled; });
+      const clearShirtSwap = () => {
+        this.removeAttribute("data-shirt-swapping");
+        shirts.forEach(shirt => {
+          delete shirt.dataset.shirtSwap;
+          shirt.style.removeProperty("--shirt-from-transform");
+          shirt.style.removeProperty("--shirt-from-opacity");
+        });
+      };
+      signal.addEventListener("abort", clearShirtSwap, { once: true });
+      const nextLayer = () => layers[(layers.findIndex(layer => layer.dataset.portrait === this.dataset.active) + 1) % layers.length];
+      const updateControls = () => {
+        const target = nextLayer();
+        this.dataset.next = target.dataset.portrait;
+        const activeIndex = layers.findIndex(layer => layer.dataset.portrait === this.dataset.active);
+        shirts.forEach((shirt, index) => {
+          const rank = (index - activeIndex + layers.length) % layers.length;
+          shirt.dataset.position = ["front", "near", "far"][rank] || "hidden";
+        });
+        button.setAttribute("aria-label", `Switch to ${target.dataset.label} portrait`);
+        photoButton.setAttribute("aria-label", `Change photo to ${target.dataset.label} portrait`);
+        this.querySelector<HTMLElement>("[data-portrait-hint]")!.textContent = `${target.dataset.portrait === "fortnite" ? "Back to" : "Try"} ${target.dataset.label}`;
+      };
+      updateControls();
+      let busy = false;
+      let visible = false;
+      let hovered = false;
+      let hoverRequested = false;
+      let peekTimer: ReturnType<typeof setTimeout> | undefined;
+      let peekAnimations: Animation[] = [];
+      let peekGeneration = 0;
+      const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const stopPeek = () => {
+        peekGeneration++;
+        clearTimeout(peekTimer);
+        peekAnimations.forEach(animation => animation.cancel());
+        peekAnimations = [];
+        this.removeAttribute("data-peeking");
+      };
+      const canPeek = () => switchEnabled && !signal.aborted && visible && !document.hidden && !motion.matches && !busy && !document.documentElement.hasAttribute("data-page-loading");
+      const playPeek = async () => {
+        // Remember hover during a running peek or portrait swap, then play it when ready.
+        if (!canPeek() || this.hasAttribute("data-peeking")) return;
+        clearTimeout(peekTimer);
+        hoverRequested = false;
+        const generation = peekGeneration;
+        this.setAttribute("data-peeking", "");
+        const started = performance.now();
+        peekAnimations = shirts.flatMap(shirt => shirt.getAnimations()).filter(animation => animation instanceof CSSAnimation);
+        await Promise.allSettled(peekAnimations.map(animation => animation.finished));
+        if (signal.aborted || generation !== peekGeneration) return;
+        this.removeAttribute("data-peeking");
+        peekAnimations = [];
+        // Five seconds between starts, with no running animation in the rest period.
+        schedulePeek(hovered && hoverRequested ? 0 : Math.max(0, 5000 - (performance.now() - started)));
+      };
+      const schedulePeek = (delay = hovered && hoverRequested ? 0 : 5000) => {
+        stopPeek();
+        if (canPeek()) peekTimer = setTimeout(playPeek, delay);
+      };
+      button.addEventListener("pointerenter", event => {
+        if (event.pointerType === "touch" || hovered) return;
+        hovered = true;
+        hoverRequested = true;
+        void playPeek();
+      }, { signal });
+      button.addEventListener("pointerleave", () => {
+        hovered = false;
+        hoverRequested = false;
+      }, { signal });
+      signal.addEventListener("abort", stopPeek, { once: true });
+      document.addEventListener("visibilitychange", () => schedulePeek(), { signal });
+      document.addEventListener("site:ready", () => schedulePeek(), { signal });
+      motion.addEventListener("change", () => schedulePeek(), { signal });
+      this.visibilityObserver = new IntersectionObserver(entries => {
+        if (signal.aborted) return;
+        const nextVisible = entries[0].isIntersecting;
+        if (nextVisible === visible) return;
+        visible = nextVisible;
+        schedulePeek();
+      });
+      this.visibilityObserver.observe(this);
+      const theme = () => document.documentElement.classList.contains("dark") ? "dark" : "light";
+      const prepare = async (style: string): Promise<void> => {
+        const img = this.querySelector<HTMLImageElement>(`[data-portrait="${style}"] .portrait-image`)!;
+        const currentTheme = theme();
+        const src = (currentTheme === "dark" ? img.dataset.darkSrc : img.dataset.lightSrc)!;
+        // Keep the existing image visible while a newly selected theme loads.
+        if (img.getAttribute("src") !== src || !img.complete || !img.naturalWidth) await this.decode(src);
+        if (signal.aborted) return;
+        if (theme() !== currentTheme) return prepare(style);
+        if (img.getAttribute("src") !== src) img.src = src;
+        img.dataset.theme = currentTheme;
+        img.hidden = false;
+      };
+      let previousTheme = theme();
+      this.themeObserver = new MutationObserver(() => {
+        const nextTheme = theme();
+        if (nextTheme === previousTheme) return;
+        previousTheme = nextTheme;
+        prepare(this.dataset.active!).catch(() => {
+          // A failed theme image leaves the last decoded portrait visible.
+        });
+      });
+      this.themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+      // A detached portrait does not observe theme changes; refresh on reconnect.
+      const activeImage = this.querySelector<HTMLImageElement>(`[data-portrait="${this.dataset.active}"] .portrait-image`)!;
+      if (activeImage.dataset.theme !== previousTheme) void prepare(this.dataset.active!).catch(() => {});
+
+      const switchPortrait = async () => {
+        if (busy || !switchEnabled) return;
+        busy = true;
+        const target = nextLayer();
+        const next = target.dataset.portrait!;
+        const label = target.dataset.label!;
+        const reduced = motion.matches;
+        // Continue from the current fan position if a peek is already in progress.
+        if (!reduced) {
+          // Batch reads before writes to avoid repeated forced style recalculations.
+          const snapshots = shirts.map(shirt => {
+            const style = getComputedStyle(shirt);
+            return { transform: style.transform === "none" ? "rotate(0deg)" : style.transform, opacity: style.opacity };
+          });
+          shirts.forEach((shirt, index) => {
+            shirt.style.setProperty("--shirt-from-transform", snapshots[index].transform);
+            shirt.style.setProperty("--shirt-from-opacity", snapshots[index].opacity);
+            shirt.dataset.shirtSwap = shirt.dataset.shirt === next ? "incoming" : shirt.dataset.shirt === this.dataset.active ? "outgoing" : "parked";
+          });
+        }
+        stopPeek();
+        if (!reduced) this.setAttribute("data-shirt-swapping", "");
+        controls.forEach(control => control.setAttribute("aria-disabled", "true"));
+        try {
+          await Promise.all([
+            prepare(next),
+            ...(!reduced ? [this.decode("/portraits/fog-cloud.webp"), this.decode("/portraits/fog-wisp.webp")] : []),
+          ]);
+          if (signal.aborted) return;
+          if (!reduced) {
+            this.setAttribute("data-transforming", "");
+            // A compositor animation supplies the swap signal; no per-frame JS polling.
+            const marker = this.querySelector<HTMLElement>(".portrait-swap-point")!.getAnimations()[0];
+            if (marker) await marker.finished;
+          }
+          if (signal.aborted) return;
+          // Hold the fully opaque fog if the theme changed while it was gathering.
+          const swapAnimations = () => [...magic.getAnimations({ subtree: true }), ...shirts.flatMap(shirt => shirt.getAnimations())];
+          const running = swapAnimations().filter(a => a.playState === "running");
+          running.forEach(animation => animation.pause());
+          await prepare(next);
+          if (signal.aborted) return;
+          this.dataset.active = next;
+          layers.forEach(layer => layer.setAttribute("aria-hidden", String(layer.dataset.portrait !== next)));
+          updateControls();
+          status.textContent = `${label} portrait selected`;
+          running.forEach(animation => animation.play());
+          await Promise.allSettled(swapAnimations().map(animation => animation.finished));
+        } catch {
+          if (!signal.aborted) status.textContent = "This portrait could not load. Please try again.";
+        } finally {
+          // An old connection must not clear a newer connection's animation state.
+          if (this.controller === controller) {
+            clearShirtSwap();
+            this.removeAttribute("data-transforming");
+            controls.forEach(control => control.removeAttribute("aria-disabled"));
+          }
+          busy = false;
+          if (!signal.aborted && this.controller === controller) schedulePeek();
+        }
+      };
+      controls.forEach(control => control.addEventListener("click", switchPortrait, { signal }));
+    }
+
+    disconnectedCallback() {
+      this.controller?.abort();
+      this.themeObserver?.disconnect();
+      this.visibilityObserver?.disconnect();
+      this.getAnimations({ subtree: true }).forEach(animation => animation.cancel());
+      this.removeAttribute("data-transforming");
+      this.images.clear();
+    }
+  }
+  if (!customElements.get("portrait-switch")) customElements.define("portrait-switch", PortraitSwitch);
+</script>

@@ -1,0 +1,53 @@
+{
+  "kind": "collectionType",
+  "collectionName": "messages",
+  "info": {
+    "singularName": "message",
+    "pluralName": "messages",
+    "displayName": "Messages",
+    "description": "Sent from the contact form on the home page."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "maxLength": 100
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "message": {
+      "type": "text",
+      "required": true,
+      "maxLength": 5000
+    },
+    "read": {
+      "type": "boolean",
+      "default": false
+    },
+    "timeZone": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "ipAddress": {
+      "type": "string",
+      "maxLength": 45
+    },
+    "fingerprint": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "userAgent": {
+      "type": "text",
+      "maxLength": 512
+    },
+    "language": {
+      "type": "string",
+      "maxLength": 200
+    }
+  }
+}

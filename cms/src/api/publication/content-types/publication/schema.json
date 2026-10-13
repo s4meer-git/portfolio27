@@ -1,0 +1,93 @@
+{
+  "kind": "collectionType",
+  "collectionName": "publications",
+  "info": {
+    "singularName": "publication",
+    "pluralName": "publications",
+    "displayName": "Publications",
+    "description": "Papers and other published research, listed at /publications."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "publishedOn": {
+      "type": "date",
+      "required": true
+    },
+    "kind": {
+      "type": "enumeration",
+      "enum": [
+        "journal",
+        "conference",
+        "preprint",
+        "thesis",
+        "chapter",
+        "report",
+        "other"
+      ],
+      "default": "journal",
+      "required": true
+    },
+    "authors": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "venue": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "doi": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "pdf": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "files"
+      ]
+    },
+    "category": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::category.category"
+    },
+    "tags": {
+      "type": "component",
+      "component": "portfolio.tag",
+      "repeatable": true
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "body": {
+      "type": "richtext"
+    },
+    "citation": {
+      "type": "text"
+    },
+    "seo": {
+      "type": "component",
+      "component": "portfolio.page-seo",
+      "repeatable": false
+    }
+  }
+}

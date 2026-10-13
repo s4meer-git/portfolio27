@@ -1,0 +1,29 @@
+---
+import PageLayout from '@/layouts/page-layout.astro';
+import { identity, originFor } from '@/lib/seo';
+import { renderMarkdown } from '@/lib/cms-markdown';
+const { site } = Astro.locals.portfolio;
+const seo = site.seo || {};
+const person = identity(site);
+const biography = renderMarkdown(site.profile.about || '');
+---
+<PageLayout title={`${seo.aboutTitle || 'About'} ${person.name}`} description={site.profile.role || ''} backLink="/">
+  <div class="space-y-8 px-4 py-6">
+    {person.aliases.length > 0 && <p class="text-sm text-muted-foreground">Also known as {person.aliases.join(', ')}.</p>}
+    <div class="prose" set:html={biography.html} />
+    <section>
+      <h2 class="mb-3 text-lg font-medium">{seo.domainsHeading || 'Official websites'}</h2>
+      <ul class="space-y-3 text-sm">
+        <li><a class="underline underline-offset-4" href={originFor(site)}>{new URL(originFor(site)).hostname}</a></li>
+        {person.domains.map(domain => <li>
+          <a class="underline underline-offset-4" href={domain.url}>{domain.label}</a>
+          {domain.description && <p class="mt-1 text-muted-foreground">{domain.description}</p>}
+        </li>)}
+      </ul>
+    </section>
+    {person.sameAs.length > 0 && <section>
+      <h2 class="mb-3 text-lg font-medium">{seo.linksHeading || 'Official profiles'}</h2>
+      <ul class="space-y-2 text-sm">{person.sameAs.map(url => <li><a class="break-all underline underline-offset-4" rel="me" href={url}>{url}</a></li>)}</ul>
+    </section>}
+  </div>
+</PageLayout>

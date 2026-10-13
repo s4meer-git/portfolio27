@@ -1,0 +1,824 @@
+---
+import { Clock3, Mail, MapPin, Mars, Music2 } from "lucide-react";
+import IconTile from "./ui/icon-tile.astro";
+import { mediaUrl } from "@/lib/cms";
+import { LinkPreview } from "@/components/ui/link-preview";
+import { profileClock } from "@/lib/profile-time";
+
+const { profile, spotify } = Astro.locals.portfolio.site;
+const zone = profile.resolvedTimeZone;
+const clock = zone ? profileClock(zone, zone) : null;
+const cover = mediaUrl(spotify?.albumCover);
+// Hovering the location shows the city: an uploaded Location photo, or a landmark
+// found on Wikipedia by /api/location-photo. `for` changes with the place, so a
+// browser never keeps showing the previous city's photo.
+const locationPhoto =
+  profile.locationPhoto ||
+  `/api/location-photo?for=${encodeURIComponent(
+    `${profile.location}|${profile.locationPhotoSubject || ""}`
+  )}`;
+const trackUrl = /^https:\/\/open\.spotify\.com\/(track|album|playlist)\//.test(
+  spotify?.trackUrl || ""
+)
+  ? spotify.trackUrl
+  : undefined;
+---
+
+<div
+  class="profile-details flex min-w-0 flex-col justify-center gap-3 p-4 text-sm"
+>
+  {
+    spotify?.enabled && (
+      <spotify-status
+        class="detail-row music-row"
+        data-page-ready="pending"
+        hidden={!["playing", "recent"].includes(spotify.status)}
+      >
+        <IconTile>
+          <Music2 size={16} />
+        </IconTile>
+        <div class="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
+          <span data-music-prefix>
+            {spotify.status === "playing"
+              ? spotify.prefix || "Vibing to"
+              : spotify.idleText || "Recently vibing to"}
+          </span>
+          <a
+            data-track-title
+            class="detail-link"
+            href={trackUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            hidden={!["playing", "recent"].includes(spotify.status)}
+          >
+            {spotify.trackTitle}
+          </a>
+          <span
+            class="album-peek-wrap"
+            hidden={!cover || !["playing", "recent"].includes(spotify.status)}
+            data-open="false"
+            data-playing="false"
+          >
+            <button
+              type="button"
+              class="album-peek"
+              aria-label={`Preview album cover for ${spotify.trackTitle}${spotify.artist ? ` by ${spotify.artist}` : ""}`}
+              aria-expanded="false"
+            >
+              <img
+                class="album-thumb"
+                decoding="async"
+                src={cover}
+                alt={`${spotify.trackTitle}${spotify.artist ? ` — ${spotify.artist}` : ""} album cover`}
+                width="160"
+                height="160"
+              />
+            </button>
+
+            {/*
+              The enlarged artwork lives in its own element rather than being a
+              scaled-up thumbnail, so it can round into a disc and spin while the
+              ring and the play button stay put. It is a descendant of the wrapper,
+              which is what lets a pointer move from the small icon onto the big
+              artwork without the wrapper ever seeing a `pointerleave`.
+            */}
+            <span class="album-stage">
+              <span class="album-disc" aria-hidden="true">
+                <img
+                  class="album-big"
+                  decoding="async"
+                  src={cover}
+                  alt=""
+                  width="160"
+                  height="160"
+                />
+              </span>
+
+              <svg class="album-ring" viewBox="0 0 128 128" aria-hidden="true">
+                <circle class="ring-track" cx="64" cy="64" r="61" />
+                <circle class="ring-fill" cx="64" cy="64" r="61" />
+              </svg>
+
+              <button
+                type="button"
+                class="album-play"
+                aria-label="Play a 15 second preview"
+                hidden
+              >
+                <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 5.5v13l11-6.5z" fill="currentColor" />
+                </svg>
+                <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M8 5.5h3v13H8zM13 5.5h3v13h-3z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
+            </span>
+          </span>
+          <span
+            data-music-on
+            class="text-muted-foreground"
+            hidden={!["playing", "recent"].includes(spotify.status)}
+          >
+            on
+          </span>
+          <a
+            href={trackUrl || "https://open.spotify.com/"}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="spotify-link"
+            aria-label="Listen on Spotify"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="19"
+              height="19"
+              role="img"
+              aria-label="Spotify"
+              fill="currentColor"
+            >
+              <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.75.75 0 0 1-1.03.25c-2.83-1.73-6.4-2.12-10.6-1.15a.75.75 0 1 1-.34-1.46c4.6-1.05 8.55-.6 11.72 1.34a.75.75 0 0 1 .25 1.02Zm1.47-3.28a.94.94 0 0 1-1.29.3c-3.23-1.99-8.15-2.56-11.97-1.4a.94.94 0 1 1-.55-1.8c4.37-1.32 9.8-.68 13.5 1.6.44.27.58.85.31 1.3Zm.13-3.42C15.23 8.3 8.85 8.09 5.16 9.2a1.13 1.13 0 1 1-.65-2.16c4.23-1.28 11.28-1.03 15.75 1.62a1.13 1.13 0 0 1-1.16 1.94Z" />
+            </svg>
+          </a>
+        </div>
+      </spotify-status>
+    )
+  }
+  {
+    profile.location && (
+      <div class="detail-row">
+        <>
+          <IconTile>
+            <MapPin size={16} />
+          </IconTile>
+          {/* React-rendered, so .detail-link's scoped styles are repeated as utilities. */}
+          <LinkPreview
+            client:visible
+            url={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.location)}`}
+            imageSrc={locationPhoto}
+            imagePosition="center"
+            className="underline-offset-4 [overflow-wrap:anywhere] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current"
+          >
+            {profile.location}
+          </LinkPreview>
+        </>
+      </div>
+    )
+  }
+  {
+    profile.showLocalTime !== false && clock && (
+      <div class="detail-row">
+        <IconTile>
+          <Clock3 size={16} />
+        </IconTile>
+        <profile-clock data-timezone={zone}>
+          <div class="flex flex-wrap items-baseline gap-x-2 tabular-nums">
+            <>
+              <time>{clock.time}</time>
+              <span data-difference class="text-muted-foreground" />
+            </>
+          </div>
+          <div data-zone class="mt-0.5 text-[0.625rem] text-muted-foreground">
+            {clock.zone}
+          </div>
+        </profile-clock>
+      </div>
+    )
+  }
+  {
+    profile.email && (
+      <div class="detail-row">
+        <>
+          <IconTile>
+            <Mail size={16} />
+          </IconTile>
+          <a class="detail-link break-all" href={`mailto:${profile.email}`}>
+            {profile.email}
+          </a>
+        </>
+      </div>
+    )
+  }
+  {
+    profile.pronouns && (
+      <div class="detail-row">
+        <>
+          <IconTile>
+            <Mars size={16} />
+          </IconTile>
+          <span aria-label={`Pronouns: ${profile.pronouns}`}>
+            {profile.pronouns}
+          </span>
+        </>
+      </div>
+    )
+  }
+</div>
+
+<style>
+  [hidden] {
+    display: none !important;
+  }
+  .detail-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-height: 1.5rem;
+    min-width: 0;
+  }
+  .detail-link {
+    text-underline-offset: 4px;
+    overflow-wrap: anywhere;
+  }
+  .detail-link:hover {
+    text-decoration: underline;
+  }
+  .spotify-link {
+    display: inline-flex;
+    color: #1db954;
+    border-radius: 50%;
+  }
+  .album-peek-wrap {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    z-index: 2;
+  }
+  .album-peek {
+    position: absolute;
+    inset: 0;
+    display: block;
+    border-radius: 4px;
+    cursor: zoom-in;
+  }
+  .album-thumb {
+    width: 24px;
+    height: 24px;
+    max-width: none;
+    object-fit: cover;
+    border-radius: 4px;
+    pointer-events: none;
+    transition: opacity 140ms ease;
+  }
+  /* The enlarged artwork sits slightly above the icon, so without this the
+     thumbnail's lower edge stays visible under it as a second, smaller copy. */
+  .album-peek-wrap[data-open="true"] .album-thumb {
+    opacity: 0;
+  }
+
+  /*
+    The stage is the expanded artwork. It is laid out at full size and scaled down
+    to the thumbnail, so opening it is a single transform rather than a resize, and
+    the pointer can travel from the icon onto the artwork without leaving the
+    wrapper's subtree.
+  */
+  .album-stage {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 128px;
+    height: 128px;
+    transform-origin: center bottom;
+    transform: translateX(-50%) scale(0.1875);
+    opacity: 0;
+    pointer-events: none;
+    /* Its own layer from the start, so opening it is a pure compositor animation
+       instead of a repaint of the whole row on every frame. */
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transition:
+      transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      opacity 200ms ease;
+  }
+  .album-peek-wrap[data-open="true"] .album-stage {
+    transform: translateX(-50%) translateY(-8px) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .album-disc {
+    position: absolute;
+    inset: 6px;
+    overflow: hidden;
+    border-radius: 6px;
+    box-shadow: 0 3px 9px #0005;
+    transition:
+      border-radius 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 320ms ease;
+  }
+  .album-big {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    pointer-events: none;
+  }
+  /* Only the artwork spins; the ring and the button are siblings, so they hold still. */
+  .album-peek-wrap[data-playing="true"] .album-disc {
+    border-radius: 50%;
+    animation: album-spin 9s linear infinite;
+  }
+  @keyframes album-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Circular progress, sitting just outside the disc in the page's own ink. */
+  .album-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    /* Start the sweep at twelve o'clock. */
+    transform: rotate(-90deg);
+    opacity: 0;
+    transition: opacity 260ms ease;
+    pointer-events: none;
+  }
+  .album-peek-wrap[data-playing="true"] .album-ring {
+    opacity: 1;
+  }
+  .ring-track,
+  .ring-fill {
+    fill: none;
+    stroke-width: 3;
+  }
+  .ring-track {
+    stroke: currentColor;
+    opacity: 0.18;
+  }
+  .ring-fill {
+    stroke: currentColor;
+    stroke-linecap: round;
+    /* Dash length is set from the real circumference in script. */
+    transition: stroke-dashoffset 120ms linear;
+  }
+
+  .album-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #fff;
+    /* A solid scrim rather than backdrop-filter: blurring the artwork behind the
+       button had to be recomputed on every frame of the open animation. */
+    background: #000a;
+    box-shadow: 0 1px 4px #0006;
+    opacity: 0;
+    transition:
+      opacity 200ms ease,
+      background-color 150ms ease;
+  }
+  /* The control belongs to the hovered, expanded artwork. */
+  .album-peek-wrap[data-open="true"] .album-play,
+  .album-peek-wrap[data-playing="true"] .album-play {
+    opacity: 1;
+  }
+  .album-play:hover {
+    background: #000c;
+  }
+  .album-play:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+  .album-play svg {
+    width: 18px;
+    height: 18px;
+  }
+  .icon-pause,
+  .album-peek-wrap[data-playing="true"] .icon-play {
+    display: none;
+  }
+  .album-peek-wrap[data-playing="true"] .icon-pause {
+    display: block;
+  }
+
+  .album-peek:focus-visible,
+  .spotify-link:focus-visible,
+  .detail-link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .album-stage,
+    .album-disc,
+    .album-play,
+    .album-ring,
+    .ring-fill {
+      transition: none;
+    }
+    .album-peek-wrap[data-playing="true"] .album-disc {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { profileClock } from "@/lib/profile-time";
+  class ProfileClock extends HTMLElement {
+    timer?: ReturnType<typeof setInterval>;
+    connectedCallback() {
+      const update = () => {
+        try {
+          const now = new Date();
+          const clock = profileClock(
+            this.dataset.timezone!,
+            Intl.DateTimeFormat().resolvedOptions().timeZone,
+            now
+          );
+          const time = this.querySelector("time")!;
+          time.textContent = clock.time;
+          time.dateTime = now.toISOString();
+          this.querySelector("[data-difference]")!.textContent =
+            `// ${clock.difference}`;
+          this.querySelector("[data-zone]")!.textContent = clock.zone;
+        } catch {
+          /* Keep the server-rendered time if Intl is unavailable. */
+        }
+      };
+      update();
+      this.timer = setInterval(update, 15000);
+    }
+    disconnectedCallback() {
+      clearInterval(this.timer);
+    }
+  }
+  if (!customElements.get("profile-clock"))
+    customElements.define("profile-clock", ProfileClock);
+
+  /** Poll interval, matching the CMS's own Spotify cache. */
+  const SPOTIFY_POLL_MS = 20000;
+  /**
+   * The last status, kept for the life of the tab. Navigating back to the home page
+   * re-creates this element; reusing a recent answer avoids a request per visit.
+   */
+  let lastStatus: { data: any; at: number } | undefined;
+
+  /** Writes only when the value differs, so unchanged polls cause no DOM work. */
+  function setAttr(element: Element, name: string, value: string) {
+    if (element.getAttribute(name) !== value) element.setAttribute(name, value);
+  }
+  function setText(element: Element, value: string) {
+    if (element.textContent !== value) element.textContent = value;
+  }
+  function setHidden(element: HTMLElement, hidden: boolean) {
+    if (element.hidden !== hidden) element.hidden = hidden;
+  }
+
+  class SpotifyStatus extends HTMLElement {
+    timer?: ReturnType<typeof setInterval>;
+    controller?: AbortController;
+    loading = false;
+    onVisibility = () => {
+      if (!document.hidden) this.update();
+    };
+    async update() {
+      if (document.hidden || this.loading) return;
+      if (lastStatus && Date.now() - lastStatus.at < SPOTIFY_POLL_MS / 2) {
+        this.render(lastStatus.data);
+        this.dataset.pageReady = "ready";
+        return;
+      }
+      this.loading = true;
+      this.controller = new AbortController();
+      const timeout = setTimeout(() => this.controller?.abort(), 13000);
+      try {
+        const response = await fetch("/api/spotify", {
+          signal: this.controller.signal,
+          cache: "no-store",
+        });
+        if (!response.ok) throw new Error("Unavailable");
+        const data = await response.json();
+        lastStatus = { data, at: Date.now() };
+        if (!this.isConnected) return;
+        this.render(data);
+      } catch {
+        if (this.isConnected) this.hidden = true;
+      } finally {
+        clearTimeout(timeout);
+        this.loading = false;
+        this.dataset.pageReady = "ready";
+      }
+    }
+    /*
+      Each poll used to rewrite every attribute, even when nothing had changed.
+      Rewriting the title's href fired the album player's track-change observer, which
+      stopped any playing preview and re-requested the clip every 20 seconds, and the
+      play button flickered in and out mid-hover. Now only real changes touch the DOM.
+    */
+    render(data: any) {
+      setHidden(
+        this,
+        !data.enabled || !["playing", "recent"].includes(data.status)
+      );
+      const playing = data.status === "playing";
+      const hasTrack = ["playing", "recent"].includes(data.status);
+      setText(
+        this.querySelector("[data-music-prefix]")!,
+        (playing ? data.prefix : data.idleText) || ""
+      );
+      const title =
+        this.querySelector<HTMLAnchorElement>("[data-track-title]")!;
+      setText(title, data.trackTitle || "");
+      setHidden(title, !hasTrack);
+      const url =
+        /^https:\/\/open\.spotify\.com\/(track|album|playlist)\//.test(
+          data.trackUrl || ""
+        )
+          ? data.trackUrl
+          : "https://open.spotify.com/";
+      setAttr(title, "href", url);
+      setAttr(this.querySelector(".spotify-link")!, "href", url);
+      setHidden(this.querySelector<HTMLElement>("[data-music-on]")!, !hasTrack);
+      const button = this.querySelector<HTMLButtonElement>(".album-peek")!;
+      const peekWrap = this.querySelector<HTMLElement>(".album-peek-wrap")!;
+      setHidden(peekWrap, !hasTrack || !data.albumCover);
+      setAttr(
+        button,
+        "aria-label",
+        `Preview album cover for ${data.trackTitle || "track"}${data.artist ? ` by ${data.artist}` : ""}`
+      );
+      const alt = `${data.trackTitle || "Track"}${data.artist ? ` — ${data.artist}` : ""} album cover`;
+      // Both the thumbnail and the enlarged artwork follow the track.
+      for (const image of this.querySelectorAll<HTMLImageElement>(
+        ".album-thumb, .album-big"
+      )) {
+        if (data.albumCover) setAttr(image, "src", data.albumCover);
+      }
+      setAttr(button.querySelector("img")!, "alt", alt);
+    }
+    connectedCallback() {
+      this.update();
+      this.timer = setInterval(() => this.update(), SPOTIFY_POLL_MS);
+      document.addEventListener("visibilitychange", this.onVisibility);
+    }
+    disconnectedCallback() {
+      clearInterval(this.timer);
+      this.controller?.abort();
+      document.removeEventListener("visibilitychange", this.onVisibility);
+    }
+  }
+  if (!customElements.get("spotify-status"))
+    customElements.define("spotify-status", SpotifyStatus);
+
+  /** How much of the clip to play, in seconds. */
+  const CLIP_SECONDS = 15;
+  /** Seconds of fade at each end, so the clip does not start or stop abruptly. */
+  const FADE_SECONDS = 3;
+
+  /** Ramps volume up over the first seconds and back down over the last. */
+  function clipVolume(elapsed: number) {
+    if (elapsed <= 0) return 0;
+    if (elapsed < FADE_SECONDS) return elapsed / FADE_SECONDS;
+    const remaining = CLIP_SECONDS - elapsed;
+    if (remaining < FADE_SECONDS) return Math.max(0, remaining / FADE_SECONDS);
+    return 1;
+  }
+
+  /**
+   * The album preview: hover to open, click to play.
+   *
+   * Open and playing are tracked separately, because they close on different
+   * things. Pointing away closes an idle preview, but a playing one stays up and
+   * keeps going until the clip ends or is paused.
+   *
+   * Spotify dropped `preview_url` from its Web API, so the clip is resolved through
+   * our own endpoint. Everything degrades quietly: no clip means no play button,
+   * and the artwork and the link to Spotify behave exactly as before.
+   */
+  function setupAlbumPlayer() {
+    const wrap = document.querySelector<HTMLElement>(".album-peek-wrap");
+    const peek = wrap?.querySelector<HTMLButtonElement>(".album-peek");
+    const stage = wrap?.querySelector<HTMLElement>(".album-stage");
+    const playButton = wrap?.querySelector<HTMLButtonElement>(".album-play");
+    const ring = wrap?.querySelector<SVGCircleElement>(".ring-fill");
+    if (!wrap || !peek || !playButton || !ring || wrap.dataset.playerReady)
+      return;
+    wrap.dataset.playerReady = "true";
+
+    const circumference = 2 * Math.PI * Number(ring.getAttribute("r") || 61);
+    ring.style.strokeDasharray = String(circumference);
+    ring.style.strokeDashoffset = String(circumference);
+
+    let audio: HTMLAudioElement | null = null;
+    let resolvedFor: string | null = null;
+    let clipUrl: string | null = null;
+    let resolving: Promise<string | null> | null = null;
+    let frame = 0;
+    let pointerInside = false;
+
+    const isPlaying = () => wrap.dataset.playing === "true";
+
+    const setOpen = (open: boolean) => {
+      wrap.dataset.open = String(open);
+      peek.setAttribute("aria-expanded", String(open));
+    };
+
+    const setProgress = (fraction: number) => {
+      ring.style.strokeDashoffset = String(
+        circumference * (1 - Math.min(1, Math.max(0, fraction)))
+      );
+    };
+
+    /**
+     * Leaves the artwork expanded only while something still warrants it.
+     *
+     * Focus counts only when it is *visible* focus: clicking the play button with a
+     * mouse leaves it focused, and treating that as intent to stay open would pin
+     * the preview open after the pointer had already gone.
+     */
+    const settle = () => {
+      const active = document.activeElement;
+      const keyboardFocus =
+        !!active && wrap.contains(active) && active.matches(":focus-visible");
+      if (!isPlaying() && !pointerInside && !keyboardFocus) setOpen(false);
+    };
+
+    const stopClip = ({ close }: { close: boolean }) => {
+      cancelAnimationFrame(frame);
+      audio?.pause();
+      if (audio) {
+        audio.currentTime = 0;
+        audio.volume = 0;
+      }
+      wrap.dataset.playing = "false";
+      setProgress(0);
+      // A finished clip folds away; a manual pause returns to the square artwork
+      // and waits for the pointer to leave.
+      if (close) setOpen(false);
+      else settle();
+    };
+
+    const tick = () => {
+      if (!audio || !isPlaying()) return;
+      const elapsed = audio.currentTime;
+      if (elapsed >= CLIP_SECONDS) {
+        stopClip({ close: true });
+        return;
+      }
+      audio.volume = Math.min(1, Math.max(0, clipVolume(elapsed)));
+      setProgress(elapsed / CLIP_SECONDS);
+      frame = requestAnimationFrame(tick);
+    };
+
+    /** The showing track's link, or null when there is no specific track to preview. */
+    const currentTrack = () => {
+      const href = document
+        .querySelector<HTMLAnchorElement>("[data-track-title]")
+        ?.getAttribute("href");
+      return href && /open\.spotify\.com\/track\//.test(href) ? href : null;
+    };
+
+    /**
+     * Looks up the clip for whichever track is showing, once per track per tab
+     * (remembered in sessionStorage across navigations). Concurrent callers share
+     * one request, and the play button only appears once a clip is known, so it
+     * never flickers while the artwork is opening.
+     */
+    function resolve(): Promise<string | null> {
+      const track = currentTrack();
+      if (!track) return Promise.resolve(null);
+      if (resolvedFor === track) return resolving ?? Promise.resolve(clipUrl);
+      resolvedFor = track;
+      clipUrl = null;
+      const key = `spotify-preview:${track}`;
+      resolving = (async () => {
+        try {
+          const saved = sessionStorage.getItem(key);
+          if (saved !== null) return saved || null;
+        } catch {
+          // Storage can be unavailable; fall through to the network.
+        }
+        try {
+          const response = await fetch(
+            `/api/spotify-preview?track=${encodeURIComponent(track)}`,
+            { signal: AbortSignal.timeout(9000) }
+          );
+          const body = await response.json();
+          const url = typeof body?.url === "string" ? body.url : null;
+          try {
+            sessionStorage.setItem(key, url ?? "");
+          } catch {
+            // Not cached; the next visit asks again.
+          }
+          return url;
+        } catch {
+          return null;
+        }
+      })().then(url => {
+        if (resolvedFor === track) {
+          clipUrl = url;
+          playButton.hidden = !url;
+        }
+        return url;
+      });
+      const pending = resolving;
+      pending.finally(() => {
+        if (resolving === pending) resolving = null;
+      });
+      return pending;
+    }
+
+    // --- opening and closing -------------------------------------------------
+    wrap.addEventListener("pointerenter", event => {
+      if ((event as PointerEvent).pointerType !== "mouse") return;
+      pointerInside = true;
+      setOpen(true);
+      void resolve();
+    });
+    wrap.addEventListener("pointerleave", event => {
+      if ((event as PointerEvent).pointerType !== "mouse") return;
+      pointerInside = false;
+      settle();
+    });
+    // Keyboard and touch reach the same states without a pointer.
+    peek.addEventListener("click", () => {
+      setOpen(wrap.dataset.open !== "true");
+      void resolve();
+    });
+    // Once open, the enlarged artwork covers the icon, so it has to offer the way
+    // out itself: on touch there is no "move the pointer away".
+    stage?.addEventListener("click", event => {
+      if ((event.target as HTMLElement).closest(".album-play")) return;
+      if (isPlaying()) return;
+      setOpen(false);
+    });
+    wrap.addEventListener("focusin", () => {
+      setOpen(true);
+      void resolve();
+    });
+    wrap.addEventListener("focusout", () => window.setTimeout(settle, 0));
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return;
+      if (isPlaying()) stopClip({ close: true });
+      else setOpen(false);
+    });
+
+    // A new track invalidates the previous clip.
+    new MutationObserver(() => {
+      stopClip({ close: true });
+      resolvedFor = null;
+      playButton.hidden = true;
+    }).observe(document.querySelector("[data-track-title]") ?? document.body, {
+      attributes: true,
+      attributeFilter: ["href"],
+    });
+
+    // --- playing -------------------------------------------------------------
+    playButton.addEventListener("click", async event => {
+      // Never let the play button also toggle the artwork behind it.
+      event.stopPropagation();
+
+      if (isPlaying()) {
+        stopClip({ close: false });
+        return;
+      }
+
+      const url = clipUrl ?? (await resolve());
+      if (!url) return;
+
+      if (!audio) {
+        audio = new Audio();
+        audio.preload = "none";
+        audio.addEventListener("ended", () => stopClip({ close: true }));
+        audio.addEventListener("error", () => {
+          playButton.hidden = true;
+          stopClip({ close: false });
+        });
+      }
+
+      if (audio.src !== url) audio.src = url;
+      audio.currentTime = 0;
+      audio.volume = 0;
+      try {
+        await audio.play();
+        setOpen(true);
+        wrap.dataset.playing = "true";
+        frame = requestAnimationFrame(tick);
+      } catch {
+        // Autoplay refused, or the clip vanished: leave the UI untouched.
+        stopClip({ close: false });
+      }
+    });
+
+    // Look the clip up when the browser is idle rather than competing with page load;
+    // hovering before then resolves it immediately.
+    const idle =
+      window.requestIdleCallback ?? ((callback: () => void) => setTimeout(callback, 1500));
+    idle(() => void resolve());
+  }
+
+  setupAlbumPlayer();
+  document.addEventListener("astro:page-load", setupAlbumPlayer);
+</script>

@@ -1,0 +1,13 @@
+---
+interface Props {
+  class?: string;
+  /** The dashed rule under a section heading. On by default, so every section matches. */
+  divider?: boolean;
+}
+
+const { class: className, divider = true } = Astro.props;
+---
+
+<div class:list={["relative px-4 py-2", divider && "border-b", className]}>
+  <slot />
+</div>

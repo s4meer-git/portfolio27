@@ -1,0 +1,82 @@
+services:
+  cms:
+    build:
+      context: .
+      dockerfile: cms/Dockerfile
+      args:
+        PUBLIC_URL: ${CMS_URL:-https://cms.s4meer.com}
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 1337
+      DATABASE_FILENAME: .tmp/data.db
+      PUBLIC_URL: ${CMS_URL:-https://cms.s4meer.com}
+      TRUST_PROXY: "true"
+      SITE_URL: ${SITE_URL:-https://s4meer.com}
+      SITE_INTERNAL_URL: http://website:4321
+      SPOTIFY_STORAGE_DIR: .tmp
+      SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI:-https://cms.s4meer.com/spotify-connection/callback}
+      APP_KEYS: ${APP_KEYS:?}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:?}
+      API_TOKEN_SALT: ${API_TOKEN_SALT:?}
+      TRANSFER_TOKEN_SALT: ${TRANSFER_TOKEN_SALT:?}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?}
+      JWT_SECRET: ${JWT_SECRET:?}
+      CMS_LOGIN_ID: ${CMS_LOGIN_ID:?}
+      CMS_PASS: ${CMS_PASS:?}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:?}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      CONTACT_NOTIFY_TO: ${CONTACT_NOTIFY_TO:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    volumes:
+      - ${DATA_ROOT:-/data/portfolio}/cms-data:/app/cms/.tmp
+      - ${DATA_ROOT:-/data/portfolio}/cms-uploads:/app/cms/public/uploads
+    expose:
+      - "1337"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:1337/_health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  website:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CMS_URL: ${CMS_URL:-https://cms.s4meer.com}
+        SITE_URL: ${SITE_URL:-https://s4meer.com}
+    restart: unless-stopped
+    init: true
+    depends_on:
+      cms:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 4321
+      SITE_URL: ${SITE_URL:-https://s4meer.com}
+      CMS_URL: ${CMS_URL:-https://cms.s4meer.com}
+      CMS_INTERNAL_URL: http://cms:1337
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:?}
+      IMAGE_CACHE_DIR: /app/.cache
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      BUILD_COMMIT_SHA: ${SOURCE_COMMIT:-}
+    volumes:
+      - ${DATA_ROOT:-/data/portfolio}/site-cache:/app/.cache
+    expose:
+      - "4321"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4321/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s

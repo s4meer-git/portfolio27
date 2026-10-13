@@ -1,0 +1,88 @@
+---
+import CmsIcon from "./cms-icon.astro";
+import { mediaUrl } from "@/lib/cms";
+import { organizationLogoUrl } from "@/lib/organization-logo";
+
+interface Props {
+  logo?: unknown;
+  linkedinUrl?: string | null;
+  icon?: string | null;
+  fallback?: string;
+  className?: string;
+  imageClass?: string;
+  size?: number;
+}
+const { logo, linkedinUrl, icon, fallback, className = "size-4", imageClass = "rounded-sm", size = 16 } = Astro.props;
+const uploaded = mediaUrl(logo);
+const automatic = !uploaded && organizationLogoUrl(linkedinUrl);
+---
+
+{
+  uploaded ? (
+    <img src={uploaded} alt="" width={size} height={size} class:list={[className, imageClass]} loading="lazy" decoding="async" />
+  ) : automatic ? (
+    <organization-logo class:list={["org-logo", className]}>
+      <span class="org-logo-fallback" aria-hidden="true">
+        {icon || fallback ? <CmsIcon name={icon} fallback={fallback} className={className} /> : <span class="flex size-2 rounded-full bg-zinc-300 dark:bg-zinc-600" />}
+      </span>
+      <img
+        src={automatic}
+        alt=""
+        width={size}
+        height={size}
+        loading="lazy"
+        decoding="async"
+        class:list={["org-logo-image", className, imageClass]}
+      />
+    </organization-logo>
+  ) : icon || fallback ? (
+    <CmsIcon name={icon} fallback={fallback} className={className} />
+  ) : (
+    <span class="flex size-2 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+  )
+}
+
+<style>
+  .org-logo {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .org-logo-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .org-logo-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+  }
+  .org-logo[data-logo-ready="true"] .org-logo-image { opacity: 1; }
+  .org-logo[data-logo-ready="true"] .org-logo-fallback { visibility: hidden; }
+</style>
+
+<script>
+  class OrganizationLogo extends HTMLElement {
+    private image: HTMLImageElement | null = null;
+    private loaded = () => { if (this.image?.naturalWidth) this.dataset.logoReady = "true"; };
+    private failed = () => { if (this.image) this.image.hidden = true; };
+    connectedCallback() {
+      this.image = this.querySelector("img");
+      if (!this.image) return;
+      this.image.addEventListener("load", this.loaded);
+      this.image.addEventListener("error", this.failed);
+      if (this.image.complete) { if (this.image.naturalWidth) this.loaded(); else this.failed(); }
+    }
+    disconnectedCallback() {
+      this.image?.removeEventListener("load", this.loaded);
+      this.image?.removeEventListener("error", this.failed);
+    }
+  }
+  if (!customElements.get("organization-logo")) customElements.define("organization-logo", OrganizationLogo);
+</script>

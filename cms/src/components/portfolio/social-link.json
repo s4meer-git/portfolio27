@@ -1,0 +1,54 @@
+{
+  "collectionName": "components_portfolio_social_link",
+  "info": {
+    "displayName": "Link",
+    "description": "A link to you elsewhere. Shown under your profile, in the footer, or both."
+  },
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "href": {
+      "type": "string",
+      "required": true
+    },
+    "prefix": {
+      "type": "string"
+    },
+    "suffix": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "customField",
+      "customField": "global::icon-picker"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "showInProfile": {
+      "type": "boolean",
+      "default": true
+    },
+    "showInFooter": {
+      "type": "boolean",
+      "default": false
+    },
+    "showPreview": {
+      "type": "boolean",
+      "default": true
+    },
+    "previewImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    }
+  }
+}

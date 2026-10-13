@@ -1,0 +1,47 @@
+---
+import ArticleLayout from "@/layouts/article-layout.astro";
+import { renderMarkdown } from "@/lib/cms-markdown";
+import { getReadingTime } from "@/lib/utils";
+import ArticleEngagement from "./article-engagement.astro";
+import { articleRoot } from "@/lib/article-path";
+import MovieMotion from "./movie-motion.astro";
+
+const { post } = Astro.props;
+
+const rendered = renderMarkdown(post.body, post.data.attachments, post.data.movieMoments);
+const labels = Astro.locals.portfolio.site.articleLabels;
+const personal = post.data.contentKind === 'personal';
+const headings = [...rendered.headings];
+if (post.data.exercise?.question) headings.push({ depth: 2, slug: 'try-it-yourself', text: labels.exerciseHeading });
+if (labels.showShareSection !== false) headings.push({ depth: 2, slug: 'share-this-article', text: labels.shareHeading });
+const sourceUrl = /^https?:\/\//i.test(post.data.sourceUrl || '') ? post.data.sourceUrl : undefined;
+---
+
+<ArticleLayout
+  headings={headings}
+  title={post.data.title}
+  date={post.data.pubDatetime}
+  readTime={getReadingTime(post.body!) || "unknown"}
+  image={post.data.image}
+  description={post.data.description}
+  backHref={articleRoot(post)}
+>
+  <Fragment set:html={rendered.html} />
+  <MovieMotion />
+  <aside class="article-taxonomy">
+    <div class="article-groups">
+      {post.data.category && (personal ? <span>{post.data.category.name}</span> : <a href={`/articles/categories/${post.data.category.slug}`}>{post.data.category.name}</a>)}
+      {post.data.series && (personal ? <span>{post.data.series.name}</span> : <a href={`/articles/series/${post.data.series.slug}`}>{post.data.series.name}</a>)}
+    </div>
+    {post.data.tags?.length > 0 && <p><strong>{labels.tagsHeading}:</strong> {post.data.tags.join(' · ')}</p>}
+    {post.data.hashtags?.length > 0 && <p><strong>{labels.hashtagsHeading}:</strong> {post.data.hashtags.map((tag: string) => `#${tag}`).join(' ')}</p>}
+    {sourceUrl && <a href={sourceUrl} target="_blank" rel="noopener noreferrer">{labels.sourceLinkLabel}</a>}
+  </aside>
+  <ArticleEngagement post={post} />
+</ArticleLayout>
+
+<style>
+  .article-taxonomy { margin-top: 2rem; font-size: .8rem; overflow-wrap: anywhere; }
+  .article-taxonomy p { font-size: inherit; }
+  .article-groups { display: flex; flex-wrap: wrap; gap: .75rem; }
+</style>

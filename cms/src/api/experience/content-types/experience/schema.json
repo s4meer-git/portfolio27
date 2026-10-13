@@ -1,0 +1,63 @@
+{
+  "kind": "collectionType",
+  "collectionName": "experiences",
+  "info": {
+    "singularName": "experience",
+    "pluralName": "experiences",
+    "displayName": "Experience",
+    "description": "Companies in the Experience section, in display order."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "company": {
+      "type": "string",
+      "required": true
+    },
+    "companyLogo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "companyIcon": {
+      "type": "customField",
+      "customField": "global::icon-picker"
+    },
+    "companyWebsite": {
+      "type": "string"
+    },
+    "linkedinUrl": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "location": {
+      "type": "string"
+    },
+    "locationType": {
+      "type": "enumeration",
+      "enum": [
+        "On-site",
+        "Hybrid",
+        "Remote"
+      ]
+    },
+    "isCurrentEmployer": {
+      "type": "boolean",
+      "default": false
+    },
+    "order": {
+      "type": "integer",
+      "default": 0,
+      "required": true
+    },
+    "positions": {
+      "type": "component",
+      "component": "portfolio.position",
+      "repeatable": true
+    }
+  }
+}

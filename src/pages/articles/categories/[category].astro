@@ -1,0 +1,16 @@
+---
+import ArticlesPage from "@/components/articles-page.astro";
+const { category: slug } = Astro.params;
+const portfolio = Astro.locals.portfolio;
+const category = portfolio.categories.find(
+  item => item.slug === slug
+);
+const hasArticles = portfolio.articles.some(
+  article => article.data.contentKind !== 'personal' && article.data.category?.slug === slug
+);
+if (!category || !hasArticles) {
+  return new Response("Category not found", { status: 404 });
+}
+---
+
+<ArticlesPage filter={{ kind: "category", ...category }} />

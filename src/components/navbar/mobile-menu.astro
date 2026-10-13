@@ -1,0 +1,245 @@
+---
+/**
+ * The navigation on phones (below 640px, where the links and ⌘K are hidden).
+ *
+ * A two-bar button that folds into an ✕, and a full-screen sheet that grows out of
+ * it as a circle, with the links spread evenly down the screen and sliding in one
+ * after another. The navigation bar stays on top, so the logo and the ✕ remain in
+ * place. Closes on a link, the ✕, Escape, or when the screen widens past phone size.
+ *
+ * Wired with document-level listeners (like the theme toggle), so it keeps working
+ * across client-side navigations without re-binding.
+ */
+const links = Astro.locals.portfolio.site.navigation ?? [];
+
+const path = Astro.url.pathname.replace(/(.)\/$/, "$1");
+const isActive = (href: string) =>
+  href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`);
+---
+
+<button
+  type="button"
+  class="menu-button"
+  aria-label="Menu"
+  aria-expanded="false"
+  aria-controls="mobile-menu"
+  data-mobile-menu-toggle
+>
+  <span class="menu-bar" aria-hidden="true"></span>
+  <span class="menu-bar" aria-hidden="true"></span>
+</button>
+
+<div id="mobile-menu" class="menu-sheet" data-open="false" inert>
+  <nav aria-label="Menu" class="menu-links">
+    {
+      links.map((link: any, index: number) => (
+        <a
+          href={link.href}
+          class="menu-link"
+          style={`--i: ${index}`}
+          aria-current={isActive(link.href) ? "page" : undefined}
+        >
+          <span class="menu-index">{String(index + 1).padStart(2, "0")}</span>
+          <span class="menu-label">{link.label}</span>
+        </a>
+      ))
+    }
+  </nav>
+</div>
+
+<script>
+  const sheet = () => document.getElementById("mobile-menu");
+  const button = () => document.querySelector<HTMLButtonElement>("[data-mobile-menu-toggle]");
+
+  function setOpen(open: boolean, { restoreFocus = true } = {}) {
+    const menu = sheet();
+    const toggle = button();
+    if (!menu || !toggle) return;
+    menu.dataset.open = String(open);
+    menu.inert = !open;
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.setAttribute("aria-label", open ? "Close menu" : "Menu");
+    // The page underneath stays put while the sheet covers it.
+    document.documentElement.classList.toggle("mobile-menu-open", open);
+    if (open) menu.querySelector<HTMLElement>(".menu-link")?.focus({ preventScroll: true });
+    else if (restoreFocus && menu.contains(document.activeElement)) toggle.focus();
+  }
+
+  const isOpen = () => sheet()?.dataset.open === "true";
+
+  document.addEventListener("click", event => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest("[data-mobile-menu-toggle]")) setOpen(!isOpen());
+    // A link closes the sheet; the navigation itself proceeds as normal.
+    else if (event.target.closest(".menu-link")) setOpen(false, { restoreFocus: false });
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && isOpen()) setOpen(false);
+  });
+
+  // Rotating a phone or widening a window past phone size: the sheet has no place there.
+  matchMedia("(min-width: 640px)").addEventListener("change", event => {
+    if (event.matches && isOpen()) setOpen(false, { restoreFocus: false });
+  });
+
+  // A new page arrives with a closed sheet; make sure the page is scrollable again.
+  document.addEventListener("astro:after-swap", () =>
+    document.documentElement.classList.remove("mobile-menu-open")
+  );
+</script>
+
+<style>
+  /* --- the button: two bars that fold into an ✕ ---------------------------- */
+  .menu-button {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    color: hsl(var(--foreground));
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .menu-button:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  .menu-bar {
+    position: absolute;
+    width: 1.125rem;
+    height: 1.5px;
+    border-radius: 999px;
+    background: currentColor;
+    /* Closing: straighten first, then spread apart. */
+    transition:
+      translate 180ms cubic-bezier(0.2, 0.8, 0.2, 1) 160ms,
+      rotate 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .menu-bar:first-child {
+    translate: 0 -3.5px;
+  }
+  .menu-bar:last-child {
+    translate: 0 3.5px;
+  }
+  /* Opening: meet in the middle first, then turn into an ✕. */
+  .menu-button[aria-expanded="true"] .menu-bar {
+    translate: 0 0;
+    transition:
+      translate 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      rotate 220ms cubic-bezier(0.3, 1.4, 0.5, 1) 160ms;
+  }
+  .menu-button[aria-expanded="true"] .menu-bar:first-child {
+    rotate: 45deg;
+  }
+  .menu-button[aria-expanded="true"] .menu-bar:last-child {
+    rotate: -45deg;
+  }
+
+  /* --- the sheet ------------------------------------------------------------ */
+  /* It sits under the navigation bar's contents (a negative layer inside the bar),
+     so the logo and the ✕ stay visible and in place above it. */
+  .menu-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    display: flex;
+    flex-direction: column;
+    padding: calc(4.5rem + var(--safe-area-top)) calc(1.5rem + var(--safe-area-right)) calc(2rem + var(--safe-area-bottom)) calc(1.5rem + var(--safe-area-left));
+    background: hsl(var(--background));
+    /* Grows out of the button, at the top right. */
+    clip-path: circle(0 at calc(100% - 2.1rem - var(--safe-area-right)) calc(1.75rem + var(--safe-area-top)));
+    visibility: hidden;
+    transition:
+      clip-path 420ms cubic-bezier(0.65, 0, 0.35, 1),
+      visibility 0s linear 420ms;
+  }
+  .menu-sheet[data-open="true"] {
+    clip-path: circle(150% at calc(100% - 2.1rem - var(--safe-area-right)) calc(1.75rem + var(--safe-area-top)));
+    visibility: visible;
+    transition:
+      clip-path 560ms cubic-bezier(0.65, 0, 0.35, 1),
+      visibility 0s;
+  }
+
+  /* The links share the height equally, however many there are. */
+  .menu-links {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-evenly;
+  }
+  .menu-link {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed hsl(var(--border));
+    color: hsl(var(--foreground) / 0.7);
+    font-size: clamp(2rem, 10vw, 2.75rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    opacity: 0;
+    translate: 0 1.25rem;
+    transition:
+      opacity 200ms ease,
+      translate 200ms ease,
+      color 150ms ease;
+  }
+  .menu-sheet[data-open="true"] .menu-link {
+    opacity: 1;
+    translate: 0 0;
+    /* One after another, once the circle has mostly opened. */
+    transition:
+      opacity 420ms ease calc(180ms + var(--i) * 60ms),
+      translate 520ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(180ms + var(--i) * 60ms),
+      color 150ms ease;
+  }
+  .menu-link:hover,
+  .menu-link:focus-visible,
+  .menu-link[aria-current="page"] {
+    color: hsl(var(--foreground));
+  }
+  .menu-link:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 4px;
+    border-radius: 0.25rem;
+  }
+  .menu-index {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0;
+    color: hsl(var(--muted-foreground));
+  }
+  .menu-link[aria-current="page"] .menu-label {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
+
+  :global(html.mobile-menu-open) {
+    overflow: hidden;
+  }
+
+  /* Phones only. Here rather than as `sm:hidden`: these rules would outrank it. */
+  @media (min-width: 640px) {
+    .menu-button,
+    .menu-sheet {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-bar,
+    .menu-button[aria-expanded="true"] .menu-bar,
+    .menu-sheet,
+    .menu-sheet[data-open="true"],
+    .menu-link,
+    .menu-sheet[data-open="true"] .menu-link {
+      transition-duration: 0s;
+      transition-delay: 0s;
+    }
+  }
+</style>

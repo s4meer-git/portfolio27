@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_portfolio_section_labels",
+  "info": {
+    "displayName": "Home page headings",
+    "description": "Headings for the sections on the home page."
+  },
+  "attributes": {
+    "about": {
+      "type": "string"
+    },
+    "skills": {
+      "type": "string"
+    },
+    "experience": {
+      "type": "string"
+    },
+    "education": {
+      "type": "string"
+    },
+    "certifications": {
+      "type": "string",
+      "default": "Certifications"
+    }
+  }
+}

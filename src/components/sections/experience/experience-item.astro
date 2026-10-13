@@ -1,0 +1,89 @@
+---
+/**
+ * One company, with every role held there. Ported from ncdai/chanhdai.com (MIT).
+ */
+import OrganizationLogo from "@/components/ui/organization-logo.astro";
+import PositionItem from "./position-item.astro";
+
+const { experience } = Astro.props;
+---
+
+<div class="group/experience space-y-4 px-4 py-4 not-last:border-b">
+  <div class="flex items-start gap-3 sm:items-center">
+    <div
+      class="flex size-6 shrink-0 items-center justify-center select-none [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:text-muted-foreground"
+    >
+      <OrganizationLogo
+        logo={experience.companyLogo}
+        linkedinUrl={experience.linkedinUrl}
+        icon={experience.companyIcon}
+        className="size-6"
+        size={24}
+        imageClass="rounded-full grayscale transition-[filter] duration-300 ease-[cubic-bezier(0.42,0,0.58,1)] group-hover/experience:grayscale-0"
+      />
+    </div>
+
+    <div
+      class="flex min-w-0 flex-1 flex-col gap-x-3 gap-y-1 pr-1 sm:flex-row sm:items-baseline sm:justify-between"
+    >
+      <h3 class="text-xl/6 font-medium">
+        {
+          experience.companyWebsite ? (
+            <a
+              class="underline-offset-4 hover:underline"
+              href={experience.companyWebsite}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {experience.company}
+            </a>
+          ) : (
+            experience.company
+          )
+        }
+      </h3>
+
+      {
+        experience.location && (
+          <dl class="flex min-w-0 items-center gap-1.5 text-sm whitespace-nowrap text-muted-foreground">
+            <dt class="sr-only">Location</dt>
+            <dd class="truncate">{experience.location}</dd>
+
+            {experience.locationType && (
+              <>
+                <dt class="sr-only">Work setup</dt>
+                <dd>({experience.locationType})</dd>
+              </>
+            )}
+
+            {experience.isCurrentEmployer && (
+              <>
+                <dt class="sr-only">Employment status</dt>
+                <dd class="text-muted-foreground">· Current</dd>
+              </>
+            )}
+          </dl>
+        )
+      }
+    </div>
+  </div>
+
+  <div
+    class="relative space-y-4 before:absolute before:left-3 before:h-full before:w-px before:bg-border"
+  >
+    {
+      (experience.positions ?? []).map((position: any) => (
+        <div class="group/position-wrap relative">
+          {/* Rounds off the timeline rail under the final role. */}
+          <div
+            class="pointer-events-none absolute bottom-0 left-3 hidden size-4 bg-background group-last/position-wrap:flex"
+            aria-hidden="true"
+          >
+            <span class="size-full -translate-y-[0.5625rem] rounded-bl-sm border-b border-l" />
+          </div>
+          <PositionItem position={position} />
+        </div>
+      ))
+    }
+  </div>
+</div>

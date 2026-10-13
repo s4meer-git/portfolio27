@@ -1,0 +1,338 @@
+---
+// Layout adapted from ncdai/chanhdai.com's SiteFooterCad (MIT; docs/third-party/chanhdai-license.txt).
+import FooterBrand from "@/components/footer-brand.astro";
+import { getBuildInfo, githubRepository } from "@/lib/build-info";
+import astroPackage from "astro/package.json";
+import reactPackage from "react/package.json";
+import tailwindPackage from "tailwindcss/package.json";
+import typescriptPackage from "typescript/package.json";
+import cmsPackage from "../../cms/package.json";
+
+interface Props {
+  hasTopSeparator?: boolean;
+}
+const { hasTopSeparator = false } = Astro.props;
+
+const { site, articles, publications, projects } = Astro.locals.portfolio;
+const footer = site.footer || {};
+const local =
+  import.meta.env.DEV ||
+  ["localhost", "127.0.0.1", "[::1]"].includes(Astro.url.hostname) ||
+  Astro.url.hostname.endsWith(".localhost");
+const build = await getBuildInfo(footer, { local });
+const fields = footer.fields || [];
+const stack = [
+  { label: `astro@${astroPackage.version}` },
+  { label: `react@${reactPackage.version}` },
+  { label: `strapi@${cmsPackage.dependencies["@strapi/strapi"]}` },
+  { label: `tailwindcss@${tailwindPackage.version}` },
+  { label: `typescript@${typescriptPackage.version}` },
+];
+const sourceUrl = githubRepository(footer.repositoryUrl);
+const safeHref = (href?: string) =>
+  href && /^(https?:\/\/|mailto:|\/[^/]|\/$|#)/i.test(href) ? href : undefined;
+const homeHref = safeHref(footer.homeHref) || "/";
+const entriesFor = field =>
+  field.kind === "source"
+    ? [
+        {
+          label: field.links?.[0]?.label || "GitHub",
+          href: field.links?.[0]?.href || sourceUrl,
+          newTab: true,
+        },
+      ]
+    : field.kind === "stack" && !field.links?.length
+      ? stack
+      : field.links || [];
+---
+
+<footer class:list={["site-footer", { "has-top-separator": hasTopSeparator }]}>
+  <div class="footer-frame max-w-3xl md:border-x">
+    <div class="footer-heading footer-rule">
+      <a class="footer-title" href={homeHref}>{footer.title || "S4MEER.COM"}</a>
+      <visitor-count class="footer-description" aria-live="polite">
+        <span data-visitor-label>Visitor count loading…</span>
+      </visitor-count>
+    </div>
+    <dl class="footer-grid">
+      {
+        fields.map(field => (
+          <div
+            class:list={[
+              "footer-field",
+              `footer-width-${field.width || "one"}`,
+            ]}
+          >
+            <dt>{field.label}</dt>
+            <dd>
+              {field.kind === "build" ? (
+                <span data-footer-build data-build-source={build.source}>
+                  {build.url ? (
+                    <a
+                      href={build.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {build.label}
+                    </a>
+                  ) : (
+                    build.label
+                  )}
+                  {build.source === "repository" && (
+                    <span class="build-note"> (latest commit)</span>
+                  )}
+                </span>
+              ) : field.kind === "date" ? (
+                build.date ? (
+                  <time datetime={build.date}>{build.date}</time>
+                ) : (
+                  <span class="footer-muted">—</span>
+                )
+              ) : field.kind === "content-count" ? (
+                <span>{articles.length + publications.length + projects.length} items</span>
+              ) : field.kind === "inspiration" ? (
+                <ol class="footer-inspiration">
+                  {entriesFor(field).map((entry, index) => (
+                    <li>
+                      <span class="footer-number" aria-hidden="true">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      {safeHref(entry.href) ? (
+                        <a
+                          href={safeHref(entry.href)}
+                          target={entry.newTab ? "_blank" : undefined}
+                          rel={entry.newTab ? "noopener noreferrer" : undefined}
+                        >
+                          {entry.label}
+                        </a>
+                      ) : (
+                        entry.label
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <ul class="footer-entries">
+                  {entriesFor(field).map(entry => (
+                    <li>
+                      {safeHref(entry.href) ? (
+                        <a
+                          href={safeHref(entry.href)}
+                          target={entry.newTab ? "_blank" : undefined}
+                          rel={entry.newTab ? "noopener noreferrer" : undefined}
+                        >
+                          {entry.label}
+                        </a>
+                      ) : (
+                        entry.label
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+    {site.seo?.showDirectoryLinks !== false && <nav aria-label="Site directory" class="flex gap-4 border-t border-dashed border-border px-4 py-3 text-xs text-muted-foreground">
+      <a class="hover:text-foreground" href="/about">{site.seo?.aboutTitle || "About"}</a>
+      <a class="hover:text-foreground" href="/sitemap">{site.seo?.sitemapTitle || "Site map"}</a>
+    </nav>}
+
+  </div>
+  {footer.showWordmark !== false && <FooterBrand href={homeHref} />}
+</footer>
+
+<style>
+  .site-footer {
+    max-width: 100%;
+    overflow-x: clip;
+    padding-bottom: 32px;
+  }
+  .footer-frame {
+    position: relative;
+    margin-inline: auto;
+  }
+  .site-footer {
+    --footer-line: hsl(var(--border));
+    font-family: var(--font-mono);
+  }
+  .footer-rule {
+    position: relative;
+  }
+  .footer-rule::before,
+  .footer-rule::after,
+  .footer-frame::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    height: 0;
+    border-top: 1px dashed var(--footer-line);
+    pointer-events: none;
+  }
+  .footer-rule::before {
+    top: 0;
+  }
+  .has-top-separator .footer-rule::before {
+    content: none;
+  }
+  .footer-rule::after,
+  .footer-frame::after {
+    bottom: 0;
+  }
+  @font-face {
+    font-family: "4x4 Pixel";
+    src: url("/fonts/4x4-font.ttf") format("truetype");
+    font-display: swap;
+  }
+  .footer-title {
+    font-family: "4x4 Pixel", monospace;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-decoration: none;
+  }
+  .footer-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 16px;
+    padding: 12px 16px;
+    font-size: 0.875rem;
+  }
+  .footer-description {
+    font-family: var(--font-sans);
+    color: hsl(var(--muted-foreground));
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+  }
+  .footer-field {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding: 12px 16px;
+  }
+  /* Draw each internal boundary once. The grid clips the first row/column,
+     leaving the frame and full-width rules to own the outside edges. */
+  .footer-field::before {
+    content: "";
+    position: absolute;
+    inset: -1px 0 0 -1px;
+    border-top: 1px dashed var(--footer-line);
+    border-left: 1px dashed var(--footer-line);
+    pointer-events: none;
+  }
+  .footer-field dt {
+    font-size: 0.625rem;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+  .footer-field dd {
+    font-size: 0.875rem;
+    line-height: 20px;
+    overflow-wrap: anywhere;
+  }
+  .footer-width-two {
+    grid-column: span 2;
+  }
+  .footer-width-full {
+    grid-column: 1 / -1;
+  }
+  .footer-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .footer-field a {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: hsl(var(--muted-foreground) / 0.5);
+  }
+  .footer-field a:hover {
+    text-decoration-color: currentColor;
+  }
+  .footer-muted,
+  .footer-number,
+  .build-note {
+    color: hsl(var(--muted-foreground));
+  }
+  .build-note {
+    font-size: 0.625rem;
+  }
+  .footer-inspiration {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 1px;
+    margin-inline: -16px;
+    font-family: var(--font-sans);
+  }
+  .footer-inspiration li {
+    display: flex;
+    gap: 8px;
+    padding-inline: 16px;
+  }
+  .footer-inspiration a {
+    text-decoration: none;
+  }
+  .footer-inspiration a:hover {
+    text-decoration: underline;
+  }
+  .footer-number {
+    font-family: var(--font-mono);
+  }
+  @media (min-width: 768px) {
+    .footer-grid,
+    .footer-inspiration {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>
+
+<script>
+  class VisitorCount extends HTMLElement {
+    async connectedCallback() {
+      try {
+        // Share the request across footers and Astro client-side navigation.
+        const state = window as Window & { portfolioVisitor?: Promise<number>; portfolioVisitId?: string };
+        if (!state.portfolioVisitId) {
+          // One id per full document load. Reuse it for navigation and retries.
+          const bytes = crypto.getRandomValues(new Uint8Array(16));
+          bytes[6] = (bytes[6] & 15) | 64;
+          bytes[8] = (bytes[8] & 63) | 128;
+          const hex = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+          state.portfolioVisitId = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+        }
+        state.portfolioVisitor ??= fetch("/api/visitors", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ visitId: state.portfolioVisitId }),
+        })
+          .then(async response => {
+            if (!response.ok) throw new Error("Visitor count unavailable");
+            const result = await response.json();
+            const count = result.totalVisits ?? result.ordinal;
+            if (!Number.isSafeInteger(count) || count < 2789) throw new Error("Invalid count");
+            return count;
+          });
+        const count = await state.portfolioVisitor;
+        this.textContent = `${count.toLocaleString("en-US")} total visits`;
+      } catch {
+        (window as Window & { portfolioVisitor?: Promise<number> }).portfolioVisitor = undefined;
+        this.textContent = "Thanks for visiting";
+      }
+    }
+  }
+  if (!customElements.get("visitor-count")) customElements.define("visitor-count", VisitorCount);
+</script>

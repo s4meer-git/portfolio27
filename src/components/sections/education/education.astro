@@ -1,0 +1,27 @@
+---
+import Box from "@/components/box/index.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxTitle from "@/components/box/title.astro";
+import EducationItem from "./education-item.astro";
+
+const labels = Astro.locals.portfolio.site.sectionLabels;
+const EDUCATION = Astro.locals.portfolio.education ?? [];
+---
+
+{
+  EDUCATION.length > 0 && (
+    <Box id="education">
+      <BoxHeader>
+        <BoxTitle>{labels.education ?? "Education"}</BoxTitle>
+      </BoxHeader>
+
+      <div class="px-4">
+        {EDUCATION.map((item: any) => (
+          <div class="py-4 not-last:border-b">
+            <EducationItem item={item} />
+          </div>
+        ))}
+      </div>
+    </Box>
+  )
+}

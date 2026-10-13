@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_portfolio_command_links",
+  "info": {
+    "displayName": "Command menu link",
+    "description": "An extra entry in the ⌘K command menu."
+  },
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "href": {
+      "type": "string",
+      "required": true
+    },
+    "group": {
+      "type": "string",
+      "default": "Links"
+    },
+    "keywords": {
+      "type": "string"
+    },
+    "shortcut": {
+      "type": "string",
+      "maxLength": 1
+    },
+    "openInNewTab": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

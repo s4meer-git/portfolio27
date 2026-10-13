@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_portfolio_skill",
+  "info": {
+    "displayName": "Skill",
+    "description": "A technology shown in the Skills grid."
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "group": {
+      "type": "string",
+      "maxLength": 60
+    },
+    "href": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "customField",
+      "customField": "global::icon-picker"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    }
+  }
+}

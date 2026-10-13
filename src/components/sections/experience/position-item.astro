@@ -1,0 +1,117 @@
+---
+/**
+ * One role held at a company. Layout ported from ncdai/chanhdai.com (MIT).
+ */
+import { Infinity as InfinityIcon } from "lucide-react";
+import CmsIcon from "@/components/ui/cms-icon.astro";
+import IconTile from "@/components/ui/icon-tile.astro";
+import Tag from "@/components/ui/tag.astro";
+import ChevronsUpDown from "@/components/ui/chevrons-up-down.astro";
+import CollapsibleRow from "@/components/ui/collapsible-row.astro";
+import MarkdownRenderer from "@/components/ui/markdown-renderer.astro";
+import { formatDuration } from "@/lib/period";
+
+const { position } = Astro.props;
+
+const duration = formatDuration(position.startDate, position.endDate);
+const ongoing = !position.endDate;
+const hasDescription = Boolean(position.description?.trim());
+const skills = position.skills ?? [];
+---
+
+<CollapsibleRow
+  className="group/position"
+  expandable={hasDescription}
+  defaultOpen={position.isExpanded}
+  label={`${position.title} details`}
+>
+  <Fragment slot="trigger">
+    <div class="relative z-1 mb-1 flex items-start gap-3 text-base">
+      <IconTile>
+        <CmsIcon name={position.icon} fallback="Briefcase" className="size-4" />
+      </IconTile>
+
+      <h4 class="flex-1 font-medium text-balance">{position.title}</h4>
+
+      {
+        hasDescription && (
+          <div class="shrink-0 text-muted-foreground">
+            <ChevronsUpDown />
+          </div>
+        )
+      }
+    </div>
+
+    <dl
+      class="flex flex-wrap items-center gap-x-2 gap-y-1 pl-9 text-sm text-muted-foreground"
+    >
+      {
+        position.employmentType && (
+          <>
+            <div>
+              <dt class="sr-only">Employment type</dt>
+              <dd>{position.employmentType}</dd>
+            </div>
+            <span class="h-4 w-px self-center bg-border" aria-hidden="true" />
+          </>
+        )
+      }
+
+      <div>
+        <dt class="sr-only">Employment period</dt>
+        <dd class="flex items-center gap-0.5 tabular-nums">
+          <span>{position.startDate}</span>
+          <span class="font-mono">—</span>
+          {
+            ongoing ? (
+              <InfinityIcon
+                className="size-4.5 translate-y-[0.5px]"
+                aria-label="Present"
+                strokeWidth={1.5}
+              />
+            ) : (
+              <span>{position.endDate}</span>
+            )
+          }
+        </dd>
+      </div>
+
+      {
+        duration && (
+          <>
+            <span class="h-4 w-px self-center bg-border" aria-hidden="true" />
+            <div>
+              <dt class="sr-only">Duration</dt>
+              <dd class="tabular-nums">{duration}</dd>
+            </div>
+          </>
+        )
+      }
+    </dl>
+  </Fragment>
+
+  <Fragment slot="panel">
+    {
+      hasDescription && (
+        <MarkdownRenderer
+          className="markdown-description pt-3 pb-1 pl-9 text-sm"
+          content={position.description}
+        />
+      )
+    }
+  </Fragment>
+
+  <Fragment slot="after">
+    {
+      skills.length > 0 && (
+        <ul class="flex flex-wrap gap-1.5 pt-3 pl-9">
+          {skills.map((skill: string) => (
+            <li class="flex">
+              <Tag>{skill}</Tag>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </Fragment>
+</CollapsibleRow>

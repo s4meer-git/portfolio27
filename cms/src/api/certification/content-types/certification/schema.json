@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "certifications",
+  "info": {
+    "singularName": "certification",
+    "pluralName": "certifications",
+    "displayName": "Certifications",
+    "description": "Credential tickets in the Certifications section of the home page."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "issuer": {
+      "type": "string",
+      "default": "Amazon Web Services"
+    },
+    "issuerLogo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "issuerIcon": {
+      "type": "customField",
+      "customField": "global::icon-picker"
+    },
+    "badge": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "credentialUrl": {
+      "type": "string"
+    },
+    "credentialId": {
+      "type": "string"
+    },
+    "issuedOn": {
+      "type": "string"
+    },
+    "expiresOn": {
+      "type": "string"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0,
+      "required": true
+    }
+  }
+}

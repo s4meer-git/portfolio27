@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_portfolio_badge_settings",
+  "info": {
+    "displayName": "Certification tickets",
+    "description": "How the certification tickets on the home page behave."
+  },
+  "attributes": {
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "shuffle": {
+      "type": "boolean",
+      "default": true
+    },
+    "shuffleSeconds": {
+      "type": "integer",
+      "default": 4,
+      "min": 2,
+      "max": 30
+    }
+  }
+}

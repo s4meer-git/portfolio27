@@ -1,0 +1,51 @@
+---
+import ModeToggle from "@/components/mode-toggle.astro";
+import Wordmark from "@/components/ui/wordmark.astro";
+import NavLinks from "./nav-links.astro";
+import CommandTrigger from "./command-trigger.astro";
+import MobileMenu from "./mobile-menu.astro";
+
+interface Props {
+  className?: string;
+}
+
+const { className } = Astro.props;
+const searchEnabled = Astro.locals.portfolio.site.commandMenu?.enabled !== false;
+---
+
+<nav
+  class:list={[
+    "site-navbar screen-line-after sticky top-0 z-50 w-full bg-background",
+    className,
+  ]}
+>
+  <div
+    class="mx-auto flex max-w-3xl items-center justify-between px-4 py-1 md:border-x"
+  >
+    <a href="/" aria-label="SC — Home" class="inline-flex items-center py-2">
+      <Wordmark />
+    </a>
+
+    <div class="flex items-center justify-center gap-2 sm:gap-3">
+      {/* Phones get the links from the menu button instead, and no ⌘K. */}
+      <div class="max-sm:hidden">
+        <NavLinks />
+      </div>
+      {
+        searchEnabled && (
+          <div class="flex items-center gap-2 max-sm:hidden sm:gap-3">
+            <span class="h-5 w-px bg-border" aria-hidden="true" />
+            <CommandTrigger />
+          </div>
+        )
+      }
+      <span class="h-5 w-px bg-border max-sm:hidden" aria-hidden="true"></span>
+      <ModeToggle />
+      <MobileMenu />
+    </div>
+  </div>
+</nav>
+
+<style>
+  .site-navbar { top: var(--safe-area-top); }
+</style>

@@ -1,0 +1,41 @@
+---
+import { Moon, Sun } from "lucide-react";
+import { cn, buttonVariants } from "@/lib/utils";
+---
+
+<button
+  id="theme-toggle"
+  type="button"
+  class={cn(
+    buttonVariants({ size: "icon", variant: "ghost" }),
+    "cursor-pointer rounded-full"
+  )}
+>
+  <Sun
+    id="sun-icon"
+    className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
+  />
+  <Moon
+    id="moon-icon"
+    className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
+  />
+  <span class="sr-only">{Astro.locals.portfolio.site.uiLabels.theme}</span>
+</button>
+<script>
+  import { setTheme } from "@/lib/theme";
+
+  let transitioning = false;
+  document.addEventListener("click", async event => {
+    if (!(event.target instanceof Element)) return;
+    if (!event.target.closest("#theme-toggle") || transitioning) return;
+
+    transitioning = true;
+    try {
+      await setTheme(
+        document.documentElement.classList.contains("dark") ? "light" : "dark"
+      );
+    } finally {
+      transitioning = false;
+    }
+  });
+</script>

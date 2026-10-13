@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_portfolio_movie_moments",
+  "info": { "displayName": "Movie GIF", "description": "A captioned movie moment placed after an article section." },
+  "attributes": {
+    "enabled": { "type": "boolean", "default": true },
+    "movieTitle": { "type": "string", "required": true },
+    "caption": { "type": "text", "required": true, "description": "Your adapted dialogue. Shown over the animation and editable without re-exporting it." },
+    "placement": { "type": "enumeration", "enum": ["after-intro", "after-section"], "default": "after-section" },
+    "afterHeading": { "type": "string", "description": "For after-section placement, paste the exact heading. The GIF appears at the end of that section." },
+    "gif": { "type": "media", "multiple": false, "allowedTypes": ["images"] },
+    "video": { "type": "media", "multiple": false, "allowedTypes": ["videos"] },
+    "poster": { "type": "media", "multiple": false, "allowedTypes": ["images"] },
+    "alt": { "type": "string" },
+    "sourceUrl": { "type": "string", "required": true },
+    "displayWidth": { "type": "integer", "min": 20, "max": 100, "default": 80 },
+    "captionArea": { "type": "integer", "min": 10, "max": 50, "default": 32, "description": "Height of the subtitle area as a percentage of the scene." }
+  }
+}

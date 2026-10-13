@@ -1,0 +1,30 @@
+---
+import ArticleDetail from '@/components/article-detail.astro';
+import ArticleItem from '@/components/article-item.astro';
+import PageLayout from '@/layouts/page-layout.astro';
+import Box from '@/components/box/index.astro';
+import BoxHeader from '@/components/box/header.astro';
+import BoxTitle from '@/components/box/title.astro';
+import Pattern from '@/components/ui/pattern.astro';
+import Pagination from '@/components/pagination.astro';
+const p = Astro.locals.portfolio;
+const labels = p.site.articleLabels;
+const entries = p.articles.filter(entry => entry.data.contentKind === 'personal');
+const path = Astro.params.page || '';
+const listing = !path || /^\d+$/.test(path);
+const pageSize = p.site.articlesPerPage || 6;
+const lastPage = Math.max(1, Math.ceil(entries.length / pageSize));
+const currentPage = Number(path || 1);
+const post = entries.find(entry => entry.id === path);
+if (listing && (!Number.isInteger(currentPage) || currentPage < 1 || currentPage > lastPage) || !listing && !post) return new Response('Page not found', {status:404});
+const page = {data:entries.slice((currentPage - 1)*pageSize,currentPage*pageSize),currentPage,lastPage,
+  url:{prev:currentPage>1 ? currentPage===2 ? '/journal' : `/journal/${currentPage-1}` : undefined,next:currentPage<lastPage ? `/journal/${currentPage+1}` : undefined}};
+---
+{listing ? <PageLayout title={labels.journalTitle} description={labels.journalDescription} relatedLink={{href:'/articles',label:labels.articlesLinkLabel}}>
+  <Pattern />
+  <Box><BoxHeader><BoxTitle>{labels.journalListHeading}</BoxTitle></BoxHeader>
+    <div class="divide-y divide-border">{page.data.map(article => <ArticleItem article={article} />)}</div>
+    {lastPage > 1 && <div class="border-t py-2"><Pagination page={page} /></div>}
+  </Box>
+  <Pattern />
+</PageLayout> : <ArticleDetail post={post} />}

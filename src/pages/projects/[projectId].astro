@@ -1,0 +1,22 @@
+---
+import ProjectLayout from "@/layouts/project-layout.astro";
+import { renderMarkdown } from "@/lib/cms-markdown";
+
+const project = Astro.locals.portfolio.projects.find(
+  p => p.id === Astro.params.projectId
+);
+if (!project) return new Response("Project not found", { status: 404 });
+
+const rendered = renderMarkdown(project.body);
+---
+
+<ProjectLayout
+  title={project.data.name}
+  technologies={project.data.technologies}
+  sourceCode={project.data.sourceCode}
+  preview={project.data.preview}
+  image={project.data.image}
+  description={project.data.description}
+>
+  <Fragment set:html={rendered.html} />
+</ProjectLayout>

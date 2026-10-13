@@ -1,0 +1,39 @@
+{
+  "collectionName": "components_portfolio_page_seo",
+  "info": {
+    "displayName": "Page search & sharing"
+  },
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "canonicalUrl": {
+      "type": "string"
+    },
+    "socialImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "imageAlt": {
+      "type": "string"
+    },
+    "noindex": {
+      "type": "boolean",
+      "default": false
+    },
+    "nofollow": {
+      "type": "boolean",
+      "default": false
+    },
+    "includeInSitemap": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

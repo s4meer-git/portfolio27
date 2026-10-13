@@ -1,0 +1,167 @@
+---
+/**
+ * The ⌘K command menu, modelled on ncdai/chanhdai.com (MIT).
+ *
+ * Everything searchable is gathered here from the CMS content the page already has,
+ * trimmed to titles, links and keywords, and handed to one React island. The island
+ * is persisted across client-side navigations, so it hydrates once per visit.
+ */
+import mark from "../../../public/brand/sc-wordmark.svg?raw";
+import wordmark from "../../../public/brand/s4meer-wordmark.svg?raw";
+import { CommandMenu, type CommandData } from "./command-menu";
+
+const { site, articles, publications, projects, experiences, education, certifications, categories, series } =
+  Astro.locals.portfolio;
+const labels = site.sectionLabels ?? {};
+// Website settings → Command menu. Missing values mean "on", so the menu keeps
+// working on a CMS that has not been given the block yet.
+const settings = site.commandMenu ?? {};
+const show = (key: string) => settings[key] !== false;
+const enabled = settings.enabled !== false;
+
+const words = (...values: unknown[]) =>
+  values
+    .flat()
+    .filter((value): value is string => typeof value === "string" && !!value.trim())
+    .map(value => value.trim());
+
+/** First letter of a label that is not already taken, for the "G then X" shortcuts. */
+const taken = new Set<string>();
+const shortcutFor = (label: string) => {
+  for (const letter of label.toUpperCase().replace(/[^A-Z]/g, "")) {
+    if (!taken.has(letter)) {
+      taken.add(letter);
+      return `G${letter}`;
+    }
+  }
+};
+
+const customLinks = (settings.customLinks ?? []).filter((link: any) => link.label && link.href);
+for (const link of customLinks) if (link.shortcut) taken.add(link.shortcut.toUpperCase());
+
+const data: CommandData = {
+  placeholder: settings.placeholder || "Type a command or search…",
+  emptyText: settings.emptyText || "No results found.",
+  showContact: show("showContact"),
+  showBrandAssets: show("showBrandAssets"),
+  showTheme: show("showTheme"),
+  custom: customLinks.map((link: any) => ({
+    group: link.group?.trim() || "Links",
+    title: link.label,
+    href: link.href,
+    external: Boolean(link.openInNewTab) || /^https?:\/\//.test(link.href),
+    shortcut: link.shortcut ? `G${link.shortcut.toUpperCase()}` : undefined,
+    keywords: words((link.keywords || "").split(",")),
+  })),
+  mark,
+  wordmark,
+  email: site.profile.email || "",
+  menu: (site.navigation ?? []).map((link: any) => ({
+    title: link.label,
+    href: link.href,
+    icon: link.href === "/" ? "mark" : /article|blog/i.test(link.href) ? "articles" : /publication/i.test(link.href) ? "publications" : /project/i.test(link.href) ? "projects" : "page",
+    shortcut: shortcutFor(link.label),
+  })),
+  sections: !show("showSections") ? [] : [
+    { title: labels.about || "About", href: "/#about", icon: "about" },
+    { title: labels.skills || "Tech Stack", href: "/#stack", icon: "stack" },
+    { title: "Contributions", href: "/#contributions", icon: "contributions" },
+    certifications.length > 0 && site.badges?.enabled !== false && {
+      title: labels.certifications || "Certifications",
+      href: "/#certifications",
+      icon: "certifications",
+    },
+    { title: labels.experience || "Experience", href: "/#experience", icon: "experience" },
+    education.length > 0 && {
+      title: labels.education || "Education",
+      href: "/#education",
+      icon: "education",
+    },
+    site.cta?.enabled !== false && site.cta && {
+      title: "Contact",
+      href: "/#contact",
+      icon: "contact",
+      keywords: words("hire", "email", site.cta.heading),
+    },
+  ].filter(Boolean) as CommandData["sections"],
+  articles: !show("showArticles") ? [] : articles.map(article => ({
+    title: article.data.title,
+    href: `${article.data.contentKind === 'personal' ? '/journal' : '/articles'}/${article.id}`,
+    keywords: words(
+      "article",
+      "blog",
+      article.data.description,
+      article.data.tags,
+      article.data.category?.name,
+      article.data.series?.name
+    ),
+  })),
+  publications: !show("showPublications") ? [] : publications.map(publication => ({
+    title: publication.data.title,
+    href: `/publications/${publication.id}`,
+    keywords: words(
+      "publication",
+      "paper",
+      "research",
+      publication.data.venue,
+      publication.data.authors,
+      publication.data.tags
+    ),
+  })),
+  projects: !show("showProjects") ? [] : projects.map(project => ({
+    title: project.data.name,
+    href: `/projects/${project.id}`,
+    keywords: words("project", project.data.description, project.data.technologies),
+  })),
+  topics: !show("showTopics") ? [] : [
+    ...categories.filter(category => articles.some(article => article.data.contentKind !== 'personal' && article.data.category?.slug === category.slug)).map((category: any) => ({
+      title: category.name,
+      href: `/articles/categories/${category.slug}`,
+      keywords: words("category", category.description),
+      icon: "category",
+    })),
+    ...series.filter(entry => articles.some(article => article.data.contentKind !== 'personal' && article.data.series?.slug === entry.slug)).map((entry: any) => ({
+      title: entry.name,
+      href: `/articles/series/${entry.slug}`,
+      keywords: words("series", entry.description),
+      icon: "series",
+    })),
+  ],
+  experience: !show("showExperience") ? [] : [
+    ...experiences.flatMap((experience: any) =>
+      (experience.positions ?? []).map((position: any) => ({
+        title: `${position.title} · ${experience.company}`,
+        href: "/#experience",
+        keywords: words("experience", "work", "job", experience.location, position.skills),
+      }))
+    ),
+    ...education.map((item: any) => ({
+      title: [item.degree, item.school].filter(Boolean).join(" · "),
+      href: "/#education",
+      keywords: words("education", "school", item.fieldOfStudy, item.skills),
+      icon: "education",
+    })),
+  ],
+  certifications: !show("showCertifications") ? [] : certifications.map((item: any) => ({
+    title: item.name,
+    href: item.credentialUrl || "/#certifications",
+    image: item.badge,
+    external: Boolean(item.credentialUrl),
+    keywords: words("certification", "badge", "credly", item.issuer),
+  })),
+  skills: !show("showSkills") ? [] : (site.skills ?? []).map((skill: any) => ({
+    title: skill.title,
+    href: skill.href || "/#stack",
+    external: Boolean(skill.href),
+    keywords: words("skill", "stack", "technology"),
+  })),
+  social: !show("showSocialLinks") ? [] : (site.socialLinks ?? []).map((link: any) => ({
+    title: link.label.trim(),
+    href: link.href,
+    external: true,
+    keywords: words(link.prefix, link.suffix, link.icon),
+  })),
+};
+---
+
+{enabled && <CommandMenu client:idle transition:persist="command-menu" data={data} />}

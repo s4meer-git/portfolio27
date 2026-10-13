@@ -1,0 +1,16 @@
+---
+/** A small pill for skills and subjects. Ported from ncdai/chanhdai.com (MIT). */
+interface Props {
+  className?: string;
+}
+const { className } = Astro.props;
+---
+
+<span
+  class:list={[
+    "inline-flex items-center rounded-full border bg-zinc-50 px-1.5 py-0.5 font-mono text-xs text-muted-foreground dark:bg-zinc-900",
+    className,
+  ]}
+>
+  <slot />
+</span>

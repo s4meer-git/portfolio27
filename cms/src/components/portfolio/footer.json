@@ -1,0 +1,40 @@
+{
+  "collectionName": "components_portfolio_footer",
+  "info": {
+    "displayName": "Footer",
+    "description": "Footer heading, GitHub build source, editable grid cells, and wordmark."
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "default": "S4MEER.COM"
+    },
+    "homeHref": {
+      "type": "string",
+      "default": "/"
+    },
+    "repositoryUrl": {
+      "type": "string"
+    },
+    "repositoryBranch": {
+      "type": "string"
+    },
+    "developerBuildLabel": {
+      "type": "string",
+      "default": "Developer build"
+    },
+    "unavailableBuildLabel": {
+      "type": "string",
+      "default": "Unavailable"
+    },
+    "showWordmark": {
+      "type": "boolean",
+      "default": true
+    },
+    "fields": {
+      "type": "component",
+      "component": "portfolio.footer-field",
+      "repeatable": true
+    }
+  }
+}

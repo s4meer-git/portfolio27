@@ -1,0 +1,15 @@
+# Tech stack artwork
+
+The additional inline SVG icons render on the server, without external icon requests or a browser icon library.
+
+- Celery, Qdrant, Google Gemini, GitHub Actions, Cursor, Claude, Django, Next.js and Vercel use paths from [Simple Icons](https://github.com/simple-icons/simple-icons), retrieved 12 October 2026. The CC0 license is included in `simple-icons-license.txt`. Original monochrome paths use `currentColor` or a brand colour in the portfolio. Celery remains available in the picker but is not in the current tech stack.
+- LangChain and LangGraph use their official open-source framework marks from [LangChain's repository](https://github.com/langchain-ai/langchain/blob/master/.github/images/logo-dark.svg) and [LangGraph's repository](https://github.com/langchain-ai/langgraph/blob/main/.github/images/logo-dark.svg), checked against [LangChain brand assets](https://www.langchain.com/brand-assets) on 12 October 2026. The wordmarks are omitted to fit the icon slots; symbol geometry and colours are unchanged. The repository MIT licenses are included in `langchain-license.txt` and `langgraph-license.txt`.
+- Flask uses the complete blue [official Flask icon](https://github.com/pallets/flask/blob/main/docs/_static/flask-icon.svg), retrieved 12 October 2026. The BSD-3-Clause license is included in `flask-license.txt`.
+- Model Context Protocol uses its [official favicon](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/favicon.svg), retrieved 12 October 2026, including the black background and white symbol. The repository's current licensing notice is included in `mcp-license.txt`; it describes the Apache-2.0/MIT transition and CC-BY-4.0 documentation licensing.
+- NumPy, Matplotlib and pandas use assets from [Devicon](https://github.com/devicons/devicon), retrieved 12 October 2026. Its MIT license is included in `devicon-license.txt`. The dark purple portions of the pandas mark inherit the text colour so they remain visible in dark mode.
+- SQL uses the dedicated [SQL file icon from vscode-icons](https://github.com/vscode-icons/vscode-icons/blob/master/icons/file_type_sql.svg), retrieved 12 October 2026. Its MIT license is included in `vscode-icons-license.txt`.
+- Chroma uses the intact three-colour symbol from [its official documentation logo](https://github.com/chroma-core/chroma/blob/main/docs/mintlify/images/light-logo.svg), retrieved 12 October 2026. The wordmark is omitted to fit the icon slot; the symbol paths and colours are unchanged.
+- OpenAI reuses the existing `developer-icons` artwork with `currentColor` so the mark remains visible in both themes.
+- The grouped stack layout is adapted from [ncdai/chanhdai.com](https://github.com/ncdai/chanhdai.com/blob/main/src/features/portfolio/components/tech-stack.tsx) (MIT).
+
+The website icon components live in `src/components/ui/icons/`. Run `npm run cms:sync-icons` after changing them so the Strapi picker previews the same artwork. Technology names, groups, links and selected logos remain CMS-owned.

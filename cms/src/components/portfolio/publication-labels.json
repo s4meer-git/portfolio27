@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_portfolio_publication_labels",
+  "info": {
+    "displayName": "Publications wording",
+    "description": "Wording on the publications pages."
+  },
+  "attributes": {
+    "pageTitle": {
+      "type": "string"
+    },
+    "pageDescription": {
+      "type": "text"
+    },
+    "listHeading": {
+      "type": "string"
+    },
+    "categoriesHeading": {
+      "type": "string",
+      "default": "Categories"
+    },
+    "categoryPageDescription": {
+      "type": "text",
+      "default": "Papers and research about {name}."
+    },
+    "abstractHeading": {
+      "type": "string"
+    },
+    "citeHeading": {
+      "type": "string"
+    }
+  }
+}

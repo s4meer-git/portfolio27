@@ -1,0 +1,59 @@
+---
+/** One row of the /publications list; the counterpart of article-item. */
+import { ChevronRightIcon, ScrollText } from "lucide-react";
+import { PUBLICATION_KINDS, authorList } from "@/lib/publications";
+
+interface Props {
+  publication: any;
+}
+
+const { publication } = Astro.props;
+const { title, venue, kind, authors, tags, publishedOn } = publication.data;
+const year = new Intl.DateTimeFormat("en-GB", { year: "numeric" }).format(publishedOn);
+const names = authorList(authors);
+---
+
+<a
+  href={`/publications/${publication.id}`}
+  class="group flex w-full cursor-pointer items-center"
+>
+  <ScrollText className="mx-5 size-5 shrink-0 text-muted-foreground" />
+
+  <div
+    class="flex min-w-0 flex-1 flex-col items-start justify-center gap-2 border-l p-4"
+  >
+    <div class="flex w-full items-center justify-between gap-3 text-left select-none">
+      <h3
+        class="text-lg font-medium underline-offset-6 group-hover:underline"
+      >
+        {title}
+      </h3>
+
+      <ChevronRightIcon
+        className="size-4 shrink-0 text-sm text-muted-foreground transition-transform duration-150 group-hover:translate-x-1"
+      />
+    </div>
+
+    {
+      names.length > 0 && (
+        <p class="line-clamp-1 text-sm text-muted-foreground">{names.join(", ")}</p>
+      )
+    }
+
+    {
+      tags.length > 0 && (
+        <ul class="flex flex-wrap items-center justify-start gap-x-4">
+          {tags.map((tag: string) => (
+            <li class="text-xs font-semibold">#{tag}</li>
+          ))}
+        </ul>
+      )
+    }
+
+    <p class="text-xs text-foreground">
+      {[venue, PUBLICATION_KINDS[kind] ?? PUBLICATION_KINDS.other, year]
+        .filter(Boolean)
+        .join(" | ")}
+    </p>
+  </div>
+</a>

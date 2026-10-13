@@ -1,0 +1,36 @@
+{
+  "collectionName": "components_portfolio_ui_labels",
+  "info": {
+    "displayName": "Button wording",
+    "description": "Wording on buttons and controls that appear throughout the site."
+  },
+  "attributes": {
+    "showMore": {
+      "type": "string"
+    },
+    "showLess": {
+      "type": "string"
+    },
+    "previous": {
+      "type": "string"
+    },
+    "next": {
+      "type": "string"
+    },
+    "copyCode": {
+      "type": "string"
+    },
+    "copiedCode": {
+      "type": "string"
+    },
+    "tableOfContents": {
+      "type": "string"
+    },
+    "backToTop": {
+      "type": "string"
+    },
+    "theme": {
+      "type": "string"
+    }
+  }
+}

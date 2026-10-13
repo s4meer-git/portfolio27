@@ -1,0 +1,48 @@
+{
+  "collectionName": "components_portfolio_ctas",
+  "info": {
+    "displayName": "Call to action",
+    "description": "The closing contact block above the footer on the home page."
+  },
+  "attributes": {
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "eyebrow": {
+      "type": "string",
+      "default": "Let's work together"
+    },
+    "heading": {
+      "type": "string",
+      "default": "Get in touch"
+    },
+    "description": {
+      "type": "text"
+    },
+    "methods": {
+      "type": "component",
+      "component": "portfolio.contact-method",
+      "repeatable": true
+    },
+    "formEnabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "formHeading": {
+      "type": "string",
+      "default": "Send a message"
+    },
+    "formDescription": {
+      "type": "text"
+    },
+    "formButton": {
+      "type": "string",
+      "default": "Send message"
+    },
+    "formSuccess": {
+      "type": "string",
+      "default": "Thanks — your message is in. I'll reply within 24 hours."
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "collectionName": "components_portfolio_position",
+  "info": {
+    "displayName": "Position",
+    "description": "One role held at a company."
+  },
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "icon": {
+      "type": "customField",
+      "customField": "global::icon-picker"
+    },
+    "employmentType": {
+      "type": "enumeration",
+      "enum": [
+        "Full-time",
+        "Part-time",
+        "Contract",
+        "Freelance",
+        "Internship",
+        "Apprenticeship",
+        "Self-employed"
+      ]
+    },
+    "startDate": {
+      "type": "string",
+      "required": true
+    },
+    "endDate": {
+      "type": "string"
+    },
+    "description": {
+      "type": "richtext"
+    },
+    "skills": {
+      "type": "component",
+      "component": "portfolio.tag",
+      "repeatable": true
+    },
+    "isExpanded": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

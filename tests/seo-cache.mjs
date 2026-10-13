@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+const require = createRequire(import.meta.url);
+const astroRequire = createRequire(require.resolve('astro/package.json'));
+const { createServer } = await import(astroRequire.resolve('vite'));
+const server = await createServer({ configFile: false, resolve: { alias: { '@': fileURLToPath(new URL('../src', import.meta.url)) } }, server: { middlewareMode: true, hmr: false, watch: null }, logLevel: 'silent' });
+const originalFetch = globalThis.fetch;
+const originalNow = Date.now;
+let now = originalNow();
+let source = 'initial';
+let blocked;
+let release;
+let unavailable = false;
+const fixture = marker => ({site:{profile:{displayName:marker,timeZone:'Asia/Dubai'},seo:{ canonicalOrigin: marker === 'initial' ? 'https://before.example' : 'https://after.example', allowAiSearch: marker === 'initial', allowAiTraining: marker === 'initial' }},articles:[],projects:[],experiences:[]});
+try {
+  const cms = await server.ssrLoadModule('/src/lib/cms.ts');
+  const robots = await server.ssrLoadModule('/src/pages/robots.txt.ts');
+  const sitemapIndex = await server.ssrLoadModule('/src/pages/sitemap-index.xml.ts');
+  const sitemap = await server.ssrLoadModule('/src/pages/sitemap.xml.ts');
+  const llms = await server.ssrLoadModule('/src/pages/llms.txt.ts');
+  const markdown = await server.ssrLoadModule('/src/pages/index.md.ts');
+  const output = async (route, portfolio) => (await route.GET({locals:{portfolio}})).text();
+  Date.now = () => now;
+  globalThis.fetch = async url => {
+    assert.ok(String(url).endsWith('/api/portfolio'));
+    if (unavailable) throw new Error('Test CMS unavailable');
+    const value = fixture(source);
+    if (blocked) await blocked;
+    return Response.json(value);
+  };
+  const initial = await cms.getPortfolio();
+  assert.equal(initial.site.profile.displayName, 'initial');
+  assert.match(await output(robots, initial), /User-agent: OAI-SearchBot\nAllow: \//);
+  now += 30001; source = 'updated';
+  blocked = new Promise(resolve => {release=resolve;});
+  let completed = false;
+  const refresh = cms.getPortfolio({ waitForFresh: true }).then(p => {completed=true;return p;});
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(completed, false, 'SEO request waits instead of returning expired content');
+  release();blocked=undefined;
+  const updated = await refresh;
+  assert.equal(updated.site.profile.displayName, 'updated');
+  assert.match(await output(robots, updated), /User-agent: OAI-SearchBot\nDisallow: \//);
+  assert.match(await output(robots, updated), /User-agent: GPTBot\nDisallow: \//);
+  for (const route of [robots, sitemapIndex, sitemap, llms, markdown]) {
+    const text = await output(route, updated);
+    assert.ok(text.includes('https://after.example'), 'all discovery outputs follow a CMS primary-domain change');
+    assert.ok(!text.includes('https://before.example'));
+  }
+  now += 30001;unavailable=true;
+  assert.equal((await cms.getPortfolio({waitForFresh:true})).site.profile.displayName,'updated','last good content survives temporary CMS failure');
+  unavailable=false;
+  cms.invalidatePortfolio();source='obsolete';
+  blocked=new Promise(resolve=>{release=resolve;});
+  const obsolete=cms.getPortfolio({waitForFresh:true});
+  await new Promise(resolve=>setTimeout(resolve,0));
+  const unblock=release;blocked=undefined;source='published';cms.invalidatePortfolio();
+  assert.equal((await cms.getPortfolio({waitForFresh:true})).site.profile.displayName,'published');
+  unblock();
+  assert.equal((await obsolete).site.profile.displayName,'published','an invalidated in-flight read cannot return obsolete content');
+  assert.equal((await cms.getPortfolio()).site.profile.displayName,'published');
+  console.log('PASS: fresh SEO cache expiry, all discovery endpoints follow CMS domain/crawler changes, CMS-failure fallback and publish/in-flight race protection.');
+} finally { globalThis.fetch=originalFetch;Date.now=originalNow;await server.close(); }

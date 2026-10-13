@@ -1,0 +1,18 @@
+---
+import PageLayout from '@/layouts/page-layout.astro';
+import { discoverablePages } from '@/lib/seo';
+const p = Astro.locals.portfolio;
+const pages = discoverablePages(p);
+const groups = [
+  { title: p.site.seo?.homeLabel || 'Home', pages: pages.filter(page => !/^\/(articles|publications|projects)(\/|$)/.test(page.path) && page.path !== '/sitemap') },
+  ...['articles', 'publications', 'projects'].map(key => ({ title: pages.find(page => page.path === '/' + key)?.title || key, pages: pages.filter(page => page.path === '/' + key || page.path.startsWith('/' + key + '/')) })),
+];
+---
+<PageLayout title={p.site.seo?.sitemapTitle || 'Site map'} description={`Explore ${p.site.profile.displayName}’s website.`} backLink="/">
+  <div class="space-y-7 px-4 py-6">
+    {groups.filter(group => group.pages.length).map(group => <section>
+      <h2 class="mb-3 text-lg font-medium">{group.title}</h2>
+      <ul class="space-y-2 text-sm">{group.pages.map(page => <li><a class="underline underline-offset-4" href={page.path}>{page.title}</a></li>)}</ul>
+    </section>)}
+  </div>
+</PageLayout>

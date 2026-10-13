@@ -1,0 +1,74 @@
+{
+  "collectionName": "components_portfolio_command_menus",
+  "info": {
+    "displayName": "Command menu",
+    "description": "The \u2318K search: wording, which content it lists, and extra links."
+  },
+  "attributes": {
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "placeholder": {
+      "type": "string",
+      "default": "Type a command or search\u2026"
+    },
+    "emptyText": {
+      "type": "string",
+      "default": "No results found."
+    },
+    "showSections": {
+      "type": "boolean",
+      "default": true
+    },
+    "showArticles": {
+      "type": "boolean",
+      "default": true
+    },
+    "showPublications": {
+      "type": "boolean",
+      "default": true
+    },
+    "showProjects": {
+      "type": "boolean",
+      "default": true
+    },
+    "showTopics": {
+      "type": "boolean",
+      "default": true
+    },
+    "showExperience": {
+      "type": "boolean",
+      "default": true
+    },
+    "showCertifications": {
+      "type": "boolean",
+      "default": true
+    },
+    "showSkills": {
+      "type": "boolean",
+      "default": true
+    },
+    "showSocialLinks": {
+      "type": "boolean",
+      "default": true
+    },
+    "showContact": {
+      "type": "boolean",
+      "default": true
+    },
+    "showBrandAssets": {
+      "type": "boolean",
+      "default": true
+    },
+    "showTheme": {
+      "type": "boolean",
+      "default": true
+    },
+    "customLinks": {
+      "type": "component",
+      "component": "portfolio.command-link",
+      "repeatable": true
+    }
+  }
+}

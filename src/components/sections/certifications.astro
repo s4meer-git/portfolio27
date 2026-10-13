@@ -1,0 +1,860 @@
+---
+/**
+ * Certifications as a flat Cover Flow of portrait tickets.
+ *
+ * Each ticket has the organization in a hatched header, the badge large in the
+ * middle, a perforated tear line, and a stub with the credential's name beside a QR
+ * code generated on the server from the verification link. Everything comes from
+ * Content Manager → Certifications.
+ *
+ * The front ticket lies on top and expands on hover; the others lie one over another
+ * on both sides, all flat (no 3D). The real tickets repeat around an endless loop, so
+ * even a handful fill both sides. Scrolling (or a trackpad swipe) over the section
+ * glides through the tickets and snaps to one; clicking a side ticket brings it
+ * forward; arrow keys, the buttons and swipes on phones work too. Moving tickets lift
+ * off the pile in a small arc, like cards flicked from a deck. Auto-rotate: Website
+ * settings → Certification tickets.
+ */
+import QRCode from "qrcode";
+import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
+import Box from "@/components/box/index.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxTitle from "@/components/box/title.astro";
+import CmsIcon from "@/components/ui/cms-icon.astro";
+
+const { certifications = [], site } = Astro.locals.portfolio;
+const settings = site.badges ?? {};
+const label = site.sectionLabels?.certifications || "Certifications";
+const autoRotate = settings.shuffle !== false && certifications.length > 1;
+const seconds = Math.min(Math.max(Number(settings.shuffleSeconds) || 4, 2), 30);
+
+const safeUrl = (value?: string) => {
+  try {
+    const url = new URL(value || "");
+    return /^https?:$/.test(url.protocol) ? url : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const real = await Promise.all(
+  certifications.map(async (item: any, index: number) => {
+    const url = safeUrl(item.credentialUrl);
+    return {
+      ...item,
+      index,
+      number: String(index + 1).padStart(2, "0"),
+      href: url?.href,
+      // Rendered on the server, so the page ships no QR library. The tile behind it
+      // is always white, since many scanners cannot read inverted codes.
+      qr: url
+        ? await QRCode.toString(url.href, {
+            type: "svg",
+            margin: 0,
+            errorCorrectionLevel: "M",
+            color: { dark: "#000000", light: "#0000" },
+          })
+        : undefined,
+    };
+  })
+);
+
+// The loop: the real tickets repeated until there are at least 15, so both sides
+// always look full. Copies are decorative and hidden from assistive tech.
+const loopLength = real.length < 2 ? real.length : Math.ceil(15 / real.length) * real.length;
+const cards = Array.from({ length: loopLength }, (_, slot) => ({
+  ...real[slot % real.length],
+  slot,
+  copy: slot >= real.length,
+}));
+const total = String(real.length).padStart(2, "0");
+---
+
+{
+  settings.enabled !== false && real.length > 0 && (
+    <Box id="certifications">
+      <BoxHeader>
+        <BoxTitle>{label}</BoxTitle>
+      </BoxHeader>
+
+      <cover-flow
+        class="flow"
+        data-real={real.length}
+        data-auto={String(autoRotate)}
+        data-interval={seconds * 1000}
+      >
+        <div
+          class="flow-stage"
+          role="group"
+          aria-roledescription="carousel"
+          aria-label={`${label}. Scroll or use the arrow keys to browse.`}
+          tabindex="0"
+          data-lenis-prevent
+        >
+          <div class="flow-track">
+          {cards.map(item => (
+            <article
+              class="ticket"
+              data-slot={item.slot}
+              aria-hidden={item.copy ? "true" : undefined}
+              aria-label={item.copy ? undefined : `${item.number} of ${total}: ${item.name}`}
+            >
+             <div class="ticket-paper">
+             <div class="ticket-shape">
+              <header class="ticket-head">
+                {item.issuerLogo ? (
+                  <img class="ticket-org-logo" src={item.issuerLogo} alt="" />
+                ) : (
+                  <CmsIcon name={item.issuerIcon} fallback="Award" className="ticket-org-icon" />
+                )}
+                <span class="ticket-org-name">{item.issuer || "Credential"}</span>
+                <span class="ticket-hatch" aria-hidden="true" />
+              </header>
+
+              <div class="ticket-main">
+                <img
+                  class="ticket-badge"
+                  src={item.badge}
+                  alt=""
+                  width="160"
+                  height="160"
+                  loading={item.copy ? "lazy" : "eager"}
+                  decoding="async"
+                  draggable="false"
+                />
+                <p class="ticket-meta">
+                  No. {item.number}/{total}
+                  {item.issuedOn && <> · {item.issuedOn}</>}
+                </p>
+              </div>
+
+              <footer class="ticket-stub">
+                {item.qr && (
+                  <a
+                    class="ticket-qr"
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    tabindex="-1"
+                    aria-label={`Verify ${item.name}`}
+                    set:html={item.qr}
+                  />
+                )}
+                <div class="ticket-stub-text">
+                  <p class="ticket-name">{item.name}</p>
+                  {item.href && (
+                    <a
+                      class="ticket-verify"
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      tabindex="-1"
+                    >
+                      Verify <ArrowUpRight className="size-[1em]" />
+                    </a>
+                  )}
+                </div>
+              </footer>
+             </div>
+             </div>
+             <div class="ticket-dim" aria-hidden="true" />
+            </article>
+          ))}
+          </div>
+        </div>
+
+        {real.length > 1 && (
+          <div class="flow-controls">
+            <span class="flow-hint">Scroll to browse</span>
+            <div class="flex items-center gap-2">
+              <button type="button" class="flow-button" data-step="-1" aria-label="Previous certification">
+                <ChevronLeft className="size-3.5" />
+              </button>
+              <span class="flow-count" aria-live="polite">
+                <span data-current>01</span> / {total}
+              </span>
+              <button type="button" class="flow-button" data-step="1" aria-label="Next certification">
+                <ChevronRight className="size-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+      </cover-flow>
+    </Box>
+  )
+}
+
+<style>
+  .flow {
+    display: block;
+    container-type: inline-size;
+  }
+
+  /* --- the stage ---------------------------------------------------------- */
+  .flow-stage {
+    /* Ticket sizes are in em; the type scales down only on very narrow screens. */
+    --card-w: 10.5em;
+    --card-h: 16.5em;
+    position: relative;
+    height: calc(var(--card-h) + 4em);
+    overflow: hidden;
+    font-size: min(13px, calc(100cqw / 26));
+    outline: none;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    /* The piles fade out towards the edges. */
+    mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  }
+  /*
+    WebKit renders a mask over moving layers by redrawing everything under it
+    offscreen, every frame. The page behind is a plain colour, so there the same fade
+    is two strips of that colour laid over the edges, which it composites for free.
+  */
+  .flow.is-webkit .flow-stage {
+    mask-image: none;
+  }
+  .flow.is-webkit .flow-stage::before,
+  .flow.is-webkit .flow-stage::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    z-index: 10000;
+    width: 12%;
+    pointer-events: none;
+  }
+  .flow.is-webkit .flow-stage::before {
+    left: 0;
+    background: linear-gradient(to right, hsl(var(--background)), hsl(var(--background) / 0));
+  }
+  .flow.is-webkit .flow-stage::after {
+    right: 0;
+    background: linear-gradient(to left, hsl(var(--background)), hsl(var(--background) / 0));
+  }
+  /*
+    The stacking order comes from each ticket's depth (translateZ), not z-index.
+    WebKit rebuilds its compositing layers on every z-index change, 30-50 ms each, so
+    each swap at the front dropped frames in Safari; depth is sorted by the
+    compositor. With no perspective, depth changes nothing else about how a ticket
+    looks. The stage's overflow and mask would flatten a 3D context, hence the track.
+  */
+  .flow-track {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    /* The track is itself a plane at depth 0, in front of every ticket but the front
+       one, so it would take their clicks and hovers. Let those reach the tickets;
+       empty space falls through to the stage, which handles dragging. */
+    pointer-events: none;
+  }
+  .flow-track > .ticket {
+    pointer-events: auto;
+  }
+  /* Desktop: bigger tickets. Phones keep the size above. */
+  @container (min-width: 40rem) {
+    .flow-stage {
+      font-size: 16.5px;
+    }
+  }
+  .flow-stage:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: -2px;
+  }
+
+  /* --- a ticket ----------------------------------------------------------- */
+  /* The outer ticket moves and casts the shadow; the shape inside is the surface,
+     with real circular holes cut at the tear line. */
+  .ticket {
+    /* Where the tear line runs: the middle of the stub's dashed top edge. */
+    --tear: calc(100% - 5.6em + 1px);
+    /* Radius of the punched notches on each side of the tear line. */
+    --notch: 0.8em;
+    /* Two semicircular cut-outs, one on each edge; what lies behind shows through. */
+    --notches:
+      radial-gradient(circle var(--notch) at 0 var(--tear), #0000 97%, #000) 0 0 / 51% 100% no-repeat,
+      radial-gradient(circle var(--notch) at 100% var(--tear), #0000 97%, #000) 100% 0 / 51% 100% no-repeat;
+    position: absolute;
+    top: 2em;
+    left: calc(50% - var(--card-w) / 2);
+    width: var(--card-w);
+    height: var(--card-h);
+    border-radius: 0.8em;
+    will-change: transform;
+    transition: scale 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  /*
+    The shadow follows the ticket's actual shape, notches included, so each cut casts
+    a soft edge onto whatever lies behind and reads as a real hole. It lives on this
+    inner layer, which never moves itself: Safari re-renders a drop-shadow on every
+    frame when it sits on the element being transformed, which made the flow stutter.
+  */
+  .ticket-paper {
+    height: 100%;
+    border-radius: inherit;
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.12)) drop-shadow(0 0.45em 0.6em rgb(0 0 0 / 0.1));
+    transition: filter 320ms ease;
+  }
+  :global(.dark) .ticket-paper {
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.6)) drop-shadow(0 0.45em 0.6em rgb(0 0 0 / 0.5));
+  }
+  /*
+    Safari (and every iOS browser, all WebKit) redraws drop-shadow filters on every
+    frame of motion, which roughly tripled the frame time. There the same shadow is a
+    box-shadow, which WebKit composites for free; it just does not reach into the
+    notches.
+  */
+  .flow.is-webkit .ticket-paper {
+    filter: none;
+    box-shadow:
+      0 1px 1px rgb(0 0 0 / 0.12),
+      0 0.45em 0.6em rgb(0 0 0 / 0.1);
+    transition: box-shadow 320ms ease;
+  }
+  :global(.dark) .flow.is-webkit .ticket-paper {
+    box-shadow:
+      0 1px 1px rgb(0 0 0 / 0.6),
+      0 0.45em 0.6em rgb(0 0 0 / 0.5);
+  }
+  /* Hovering the front ticket lifts it out, like the expanding Spotify album art.
+     `scale` composes with the flow's own transform, so the two never fight. */
+  @media (hover: hover) {
+    .ticket[data-front]:hover {
+      scale: 1.08;
+    }
+    :global(html:not(.dark)) .ticket[data-front]:hover .ticket-paper {
+      filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.12)) drop-shadow(0 0.9em 1.1em rgb(0 0 0 / 0.16));
+    }
+    :global(html:not(.dark)) .flow.is-webkit .ticket[data-front]:hover .ticket-paper {
+      filter: none;
+      box-shadow:
+        0 1px 1px rgb(0 0 0 / 0.12),
+        0 0.9em 1.1em rgb(0 0 0 / 0.16);
+    }
+  }
+  .ticket[data-front]:focus-within {
+    scale: 1.08;
+  }
+  .ticket-shape {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: inherit;
+    /* Paper grain on the header strip and the stub; the middle stays plain white. */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.25 0 0 0 0 0.25 0 0 0 0 0.25 0 0 0 0.3 -0.06'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    --paper-top: hsl(var(--card));
+    --paper-stub: hsl(var(--muted) / 0.55);
+    background: var(--paper-top);
+    color: hsl(var(--card-foreground));
+    /* Printed markings: the edge, the tear line and the notches. */
+    --ink: hsl(var(--foreground) / 0.13);
+    mask: var(--notches);
+  }
+  /* The outline, drawn over the content (the header and stub backgrounds would hide
+     it otherwise) as an inset shadow rather than a border: Chrome does not cut a
+     masked element's border, which left a line running through the cut-outs. */
+  .ticket-shape::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px var(--ink);
+    pointer-events: none;
+  }
+  /* Tickets further from the front dim a little. The dim is its own layer on top of
+     the paper, not inside it: changing anything inside the masked, drop-shadowed
+     paper repaints the whole ticket, every frame, for every ticket in motion, while
+     this layer's opacity is faded by the compositor alone. */
+  .ticket-dim {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    /* The notches are left out by painting the colour around them, not by a mask:
+       a masked layer costs Safari an offscreen pass every frame, and there is one
+       per ticket. */
+    --dim: hsl(var(--background));
+    background:
+      radial-gradient(circle var(--notch) at 0 var(--tear), #0000 97%, var(--dim)) 0 0 / 51% 100% no-repeat,
+      radial-gradient(circle var(--notch) at 100% var(--tear), #0000 97%, var(--dim)) 100% 0 / 51% 100% no-repeat;
+    opacity: 0;
+    will-change: opacity;
+    pointer-events: none;
+  }
+  /* Only the front ticket's links respond; clicking another ticket brings it forward. */
+  .ticket:not([data-front]) a {
+    pointer-events: none;
+  }
+
+  .ticket-head {
+    display: flex;
+    align-items: center;
+    gap: 0.45em;
+    height: 2.3em;
+    padding: 0 0.75em;
+    border-radius: 0.72em 0.72em 0 0;
+    background: var(--grain), hsl(var(--primary));
+    background-size: 180px 180px, auto;
+    color: hsl(var(--primary-foreground));
+  }
+  .ticket-org-logo,
+  .ticket-head :global(.ticket-org-icon) {
+    width: 1.35em;
+    height: 1.35em;
+    flex-shrink: 0;
+    object-fit: contain;
+  }
+  /* Brand marks drawn in dark ink have to read on the header strip. */
+  .ticket-head :global([fill="#252F3E" i]) {
+    fill: hsl(var(--primary-foreground));
+  }
+  .ticket-org-name {
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 0.55em;
+    letter-spacing: 0.02em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .ticket-hatch {
+    flex: 0 0 1.4em;
+    align-self: stretch;
+    margin-block: 0.6em;
+    margin-left: auto;
+    background: repeating-linear-gradient(-55deg, currentColor 0 0.2em, transparent 0.2em 0.55em);
+    opacity: 0.3;
+  }
+
+  .ticket-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    min-height: 0;
+    padding: 0.7em 0.7em 0.5em;
+    text-align: center;
+  }
+  /* The badge is the hero of the ticket. */
+  .ticket-badge {
+    width: 7em;
+    height: 7em;
+    flex-shrink: 0;
+    object-fit: contain;
+    filter: drop-shadow(0 0.15em 0.3em rgb(0 0 0 / 0.2));
+    pointer-events: none;
+  }
+  .ticket-meta {
+    font-family: var(--font-mono);
+    font-size: 0.5em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Tear line with a notch on each side. */
+  .ticket-stub {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    height: 5.6em;
+    padding: 0 0.75em;
+    border-top: 2px dashed var(--ink);
+    border-radius: 0 0 0.72em 0.72em;
+    margin-top: auto;
+    background: var(--grain), var(--paper-stub);
+    background-size: 180px 180px, auto;
+  }
+  .ticket-qr {
+    display: block;
+    width: 3.3em;
+    height: 3.3em;
+    flex-shrink: 0;
+    padding: 0.25em;
+    border-radius: 0.3em;
+    /* Always dark on white: many scanners fail on inverted codes. */
+    background: #fff;
+    box-shadow: 0 0 0 1px hsl(var(--border));
+  }
+  .ticket-qr :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .ticket-qr :global(path[stroke]) {
+    stroke: #0a0a0a;
+  }
+  .ticket-stub-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+    min-width: 0;
+  }
+  /* The credential's name, where the ID used to be. */
+  .ticket-name {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.56em;
+    font-weight: 500;
+    line-height: 1.18;
+    letter-spacing: -0.005em;
+    text-wrap: pretty;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+  }
+  .ticket-verify {
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 0.5em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2em;
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-color: hsl(var(--muted-foreground) / 0.5);
+    text-underline-offset: 0.3em;
+  }
+  .ticket-verify:hover {
+    text-decoration-color: currentColor;
+  }
+  .ticket[data-front] .ticket-qr:focus-visible,
+  .ticket[data-front] .ticket-verify:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* --- controls ------------------------------------------------------------ */
+  .flow-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 1rem 0.75rem;
+    border-top: 1px dashed hsl(var(--border));
+  }
+  .flow-hint {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+  .flow-button {
+    display: grid;
+    place-items: center;
+    width: 1.625rem;
+    height: 1.625rem;
+    border-radius: 999px;
+    color: hsl(var(--muted-foreground));
+    cursor: pointer;
+    transition:
+      color 150ms ease,
+      background-color 150ms ease;
+  }
+  .flow-button:hover {
+    color: hsl(var(--foreground));
+    background: hsl(var(--accent));
+  }
+  .flow-button:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  .flow-count {
+    min-width: 3.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    color: hsl(var(--muted-foreground));
+  }
+</style>
+
+<script>
+  /**
+   * A gentle, regular zigzag: neighbouring tickets alternate slightly up and down and
+   * lean about a degree either way, like cards laid out by hand. The front ticket is
+   * always straight and level.
+   */
+  const ZIG_TILT = 1.1; // degrees
+  const ZIG_OFFSET = 0.02; // fraction of the ticket's width
+  const SWAP_SPREAD = 0.27; // extra sideways parting mid-swap, fraction of the ticket's width
+
+  /**
+   * Flat Cover Flow.
+   *
+   * `position` is a continuous index into the loop of tickets; it eases towards
+   * `target`, and every frame each ticket is placed by its signed distance from
+   * `position`: the front one centred on top, the rest overlapping one another on
+   * either side. Scrolling moves `target` continuously and it snaps to the nearest
+   * ticket once the wheel stops.
+   */
+  class CoverFlow extends HTMLElement {
+    private cards: HTMLElement[] = [];
+    private stage!: HTMLElement;
+    private dims: HTMLElement[] = [];
+    private ranks: number[] = [];
+    private width = 140;
+    private position = 0;
+    private target = 0;
+    private frame = 0;
+    private snapTimer = 0;
+    private autoTimer = 0;
+    private engaged = false;
+    private visible = true;
+    private dragged = false;
+    private cleanup = new AbortController();
+
+    connectedCallback() {
+      this.stage = this.querySelector<HTMLElement>(".flow-stage")!;
+      // WebKit (Safari, and all browsers on iOS) gets the cheaper shadow; see the CSS.
+      this.classList.toggle("is-webkit", navigator.vendor?.startsWith("Apple") ?? false);
+      this.cards = [...this.querySelectorAll<HTMLElement>(".ticket")];
+      this.dims = this.cards.map(card => card.querySelector<HTMLElement>(".ticket-dim")!);
+      this.width = this.cards[0]?.offsetWidth || 140;
+      const { signal } = this.cleanup;
+      this.render();
+      new ResizeObserver(() => {
+        this.width = this.cards[0]?.offsetWidth || 140;
+        this.render();
+      }).observe(this.stage);
+      if (this.cards.length < 2) return;
+
+      // Scrolling over the section browses instead of moving the page.
+      this.stage.addEventListener(
+        "wheel",
+        event => {
+          event.preventDefault();
+          const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+          const pixels = event.deltaMode === 1 ? delta * 40 : delta;
+          this.target += Math.max(-1, Math.min(1, pixels / 110));
+          this.glide();
+          clearTimeout(this.snapTimer);
+          this.snapTimer = window.setTimeout(() => this.go(Math.round(this.target)), 140);
+        },
+        { signal, passive: false }
+      );
+
+      // Clicking a side ticket brings it forward.
+      this.stage.addEventListener(
+        "click",
+        event => {
+          if (this.dragged) return void (this.dragged = false);
+          const card =
+            (event.target as Element).closest<HTMLElement>(".ticket") ?? this.cardAt(event.clientX, event.clientY);
+          if (!card || card.hasAttribute("data-front")) return;
+          const n = this.cards.length;
+          const slot = Number(card.dataset.slot);
+          const offset = ((((slot - Math.round(this.target)) % n) + n + n / 2) % n) - n / 2;
+          this.go(Math.round(this.target) + Math.round(offset));
+        },
+        { signal }
+      );
+
+      this.stage.addEventListener(
+        "keydown",
+        event => {
+          const step = ({ ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 } as Record<string, number>)[event.key];
+          if (!step) return;
+          event.preventDefault();
+          this.go(Math.round(this.target) + step);
+        },
+        { signal }
+      );
+      for (const button of this.querySelectorAll<HTMLButtonElement>(".flow-button")) {
+        button.addEventListener("click", () => this.go(Math.round(this.target) + Number(button.dataset.step)), { signal });
+      }
+
+      this.setupDrag(signal);
+
+      const engage = (value: boolean) => () => {
+        this.engaged = value;
+        this.schedule();
+      };
+      this.addEventListener("pointerenter", engage(true), { signal });
+      this.addEventListener("pointerleave", engage(false), { signal });
+      this.addEventListener("focusin", engage(true), { signal });
+      this.addEventListener(
+        "focusout",
+        () => setTimeout(() => ((this.engaged = this.contains(document.activeElement)), this.schedule())),
+        { signal }
+      );
+      document.addEventListener("visibilitychange", () => this.schedule(), { signal });
+      new IntersectionObserver(([entry]) => ((this.visible = entry.isIntersecting), this.schedule()), {
+        threshold: 0.3,
+      }).observe(this);
+      this.schedule();
+    }
+
+    disconnectedCallback() {
+      this.cleanup.abort();
+      cancelAnimationFrame(this.frame);
+      clearTimeout(this.snapTimer);
+      clearTimeout(this.autoTimer);
+    }
+
+    /** The ticket under a point, nearest the front first. */
+    private cardAt(x: number, y: number) {
+      return this.cards
+        .filter(card => card.style.visibility !== "hidden")
+        .filter(card => {
+          const r = card.getBoundingClientRect();
+          return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+        })
+        .sort((a, b) => this.ranks[Number(a.dataset.slot)] - this.ranks[Number(b.dataset.slot)])[0];
+    }
+
+    /** Drag or swipe sideways to scrub through the tickets. */
+    private setupDrag(signal: AbortSignal) {
+      let start: { x: number; y: number; target: number; id: number; horizontal?: boolean } | null = null;
+      this.stage.addEventListener(
+        "pointerdown",
+        event => {
+          start = { x: event.clientX, y: event.clientY, target: this.target, id: event.pointerId };
+          this.dragged = false;
+        },
+        { signal }
+      );
+      this.stage.addEventListener(
+        "pointermove",
+        event => {
+          if (!start || event.pointerId !== start.id) return;
+          const dx = event.clientX - start.x;
+          const dy = event.clientY - start.y;
+          if (start.horizontal === undefined) {
+            if (Math.hypot(dx, dy) < 8) return;
+            start.horizontal = Math.abs(dx) > Math.abs(dy);
+            if (start.horizontal) this.stage.setPointerCapture(event.pointerId);
+          }
+          if (!start.horizontal) return;
+          this.dragged = true;
+          const cardWidth = this.cards[0].offsetWidth || 140;
+          this.target = start.target - dx / (cardWidth * 0.55);
+          this.glide();
+        },
+        { signal }
+      );
+      const end = () => {
+        if (start?.horizontal) this.go(Math.round(this.target));
+        start = null;
+      };
+      this.stage.addEventListener("pointerup", end, { signal });
+      this.stage.addEventListener("pointercancel", end, { signal });
+    }
+
+    go(index: number) {
+      this.target = index;
+      this.glide();
+      this.schedule();
+    }
+
+    private schedule() {
+      clearTimeout(this.autoTimer);
+      if (
+        this.dataset.auto !== "true" ||
+        this.engaged ||
+        !this.visible ||
+        document.hidden ||
+        matchMedia("(prefers-reduced-motion: reduce)").matches
+      )
+        return;
+      this.autoTimer = window.setTimeout(() => this.go(Math.round(this.target) + 1), Number(this.dataset.interval) || 4000);
+    }
+
+    private glide() {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        this.position = this.target;
+        this.render();
+        return;
+      }
+      if (this.frame) return;
+      let last = performance.now();
+      const tick = (now: number) => {
+        // The same glide on 60 Hz and 120 Hz screens, and no lurch after a dropped
+        // frame: 0.16 of the way per 60 Hz frame.
+        const frames = Math.min(Math.max((now - last) / (1000 / 60), 0), 4);
+        last = now;
+        this.position += (this.target - this.position) * (1 - Math.pow(1 - 0.16, frames));
+        if (Math.abs(this.target - this.position) < 0.001) this.position = this.target;
+        this.render();
+        this.frame = this.position === this.target ? 0 : requestAnimationFrame(tick);
+      };
+      this.frame = requestAnimationFrame(tick);
+    }
+
+    private render() {
+      const n = this.cards.length;
+      const width = this.width;
+      const center = width * 0.62; // the first ticket on each side, partly under the front one
+      const gap = width * 0.2; // how much of each further ticket peeks out
+      const front = ((Math.round(this.position) % n) + n) % n;
+      const direction = Math.sign(this.target - this.position);
+      // Each ticket's distance from the front, and from that the stacking order: the
+      // nearest on top, set as depth (see .flow-track).
+      const distances = this.cards.map((_, slot) => {
+        const d = (((slot - this.position) % n) + n) % n;
+        return Math.min(d, n - d);
+      });
+      const ranks = (this.ranks = new Array<number>(n));
+      [...distances.keys()]
+        .sort((a, b) => distances[a] - distances[b] || a - b)
+        .forEach((slot, rank) => (ranks[slot] = rank));
+
+      this.cards.forEach((card, slot) => {
+        // Signed distance from the front, wrapped around the loop.
+        let d = (((slot - this.position) % n) + n) % n;
+        if (d > n / 2) d -= n;
+        const a = Math.abs(d);
+        const s = Math.sign(d);
+        const near = Math.min(a, 1);
+        // Deck-of-cards motion, flat: a ticket leaving or taking the front lifts off
+        // the pile in a small arc and tilts, then settles.
+        const flick = Math.sin(near * Math.PI);
+        // The two tickets swapping the front change layers at the halfway point, so
+        // they part sideways until they are fully clear of each other there (tilt
+        // included); swapping while they overlap looks like one passing through the other.
+        const x = s * (near * center + flick * width * SWAP_SPREAD + Math.max(a - 1, 0) * gap);
+        // Resting zigzag, faded in as the ticket leaves the front.
+        const zig = slot % 2 ? 1 : -1;
+        // The ticket coming to the front dips and slides out from underneath the
+        // current one, which lifts away, so they part vertically before swapping
+        // layers instead of one appearing to pass through the other.
+        const incoming = direction !== 0 && Math.sign(d) === direction;
+        const arc = incoming ? flick * width * 0.17 : -flick * width * 0.14;
+        const lift = arc + near * zig * ZIG_OFFSET * width;
+        const tilt = s * flick * 6 + near * zig * ZIG_TILT;
+        // Tickets further back get slightly smaller, so the piles recede.
+        const size = 1 - Math.min(a, 6) * 0.035;
+        // Only write what changed: every style write costs Safari a restyle.
+        const hidden = a > 8;
+        const transform = hidden
+          ? ""
+          : `translate3d(${x.toFixed(1)}px, ${lift.toFixed(1)}px, ${-ranks[slot]}px) rotate(${tilt.toFixed(2)}deg) scale(${size.toFixed(4)})`;
+        if (transform && card.style.transform !== transform) card.style.transform = transform;
+        const shade = (Math.min(0.1 + a * 0.07, 0.55) * near).toFixed(2);
+        const dim = this.dims[slot];
+        if (dim.style.opacity !== shade) dim.style.opacity = shade;
+        const visibility = hidden ? "hidden" : "visible";
+        if (card.style.visibility !== visibility) card.style.visibility = visibility;
+        const isFront = slot === front;
+        if (card.hasAttribute("data-front") !== isFront) {
+          card.toggleAttribute("data-front", isFront);
+          // Only the real front ticket's links are keyboard-reachable.
+          for (const link of card.querySelectorAll("a")) {
+            if (isFront) link.removeAttribute("tabindex");
+            else link.setAttribute("tabindex", "-1");
+          }
+        }
+      });
+
+      const real = Number(this.dataset.real) || n;
+      const current = this.querySelector("[data-current]");
+      if (current) current.textContent = String((front % real) + 1).padStart(2, "0");
+    }
+  }
+
+  if (!customElements.get("cover-flow")) customElements.define("cover-flow", CoverFlow);
+</script>

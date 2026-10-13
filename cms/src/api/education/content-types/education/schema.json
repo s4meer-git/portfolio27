@@ -1,0 +1,65 @@
+{
+  "kind": "collectionType",
+  "collectionName": "educations",
+  "info": {
+    "singularName": "education",
+    "pluralName": "educations",
+    "displayName": "Education",
+    "description": "Schools and courses in the Education section."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "school": {
+      "type": "string",
+      "required": true
+    },
+    "linkedinUrl": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "icon": {
+      "type": "customField",
+      "customField": "global::icon-picker"
+    },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "degree": {
+      "type": "string"
+    },
+    "fieldOfStudy": {
+      "type": "string"
+    },
+    "startDate": {
+      "type": "string",
+      "required": true
+    },
+    "endDate": {
+      "type": "string"
+    },
+    "description": {
+      "type": "richtext"
+    },
+    "skills": {
+      "type": "component",
+      "component": "portfolio.tag",
+      "repeatable": true
+    },
+    "isExpanded": {
+      "type": "boolean",
+      "default": false
+    },
+    "order": {
+      "type": "integer",
+      "default": 0,
+      "required": true
+    }
+  }
+}

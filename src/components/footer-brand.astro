@@ -1,0 +1,168 @@
+---
+// Gradient geometry and spring settings adapted from ncdai/chanhdai.com (MIT).
+import mark from "../../public/brand/s4meer-wordmark.svg?raw";
+const { href = "/" } = Astro.props;
+const [, , width, height] = mark
+  .match(/viewBox="([^"]+)"/)![1]
+  .split(" ")
+  .map(Number);
+const gradientId = `footer-wordmark-${crypto.randomUUID()}`;
+const svg = mark
+  .replace(
+    'fill="currentColor"',
+    `fill="url(#${gradientId})" aria-hidden="true"`
+  )
+  .replace(
+    "<path ",
+    '<path stroke="currentColor" stroke-opacity="0.1" stroke-width="1.5" vector-effect="non-scaling-stroke" '
+  )
+  .replace(
+    "</svg>",
+    `<defs><linearGradient id="${gradientId}" gradientUnits="userSpaceOnUse" x1="${width / 2}" y1="0" x2="${width / 2}" y2="${height}"><stop offset="0.625" stop-color="currentColor" stop-opacity="0"/><stop offset="1" stop-color="currentColor"/></linearGradient></defs></svg>`
+  );
+---
+
+<footer-wordmark class="footer-brand" data-footer-brand>
+  <a href={href} aria-label="S4MEER — Home" set:html={svg} />
+</footer-wordmark>
+
+<style>
+  .footer-brand {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    padding-inline: clamp(24px, 6vw, 96px);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .footer-brand a {
+    display: block;
+    max-width: 1440px;
+    margin-inline: auto;
+    transform: translateY(20%);
+  }
+  .footer-brand :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .footer-brand::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 25%;
+    width: 50%;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--foreground) / 0.2),
+      transparent
+    );
+  }
+  .footer-brand a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -4px;
+  }
+</style>
+
+<script>
+  class FooterWordmark extends HTMLElement {
+    connectedCallback() {
+      const svg = this.querySelector("svg");
+      const gradient = this.querySelector("linearGradient");
+      if (!svg || !gradient) return;
+
+      const controller = new AbortController();
+      const { signal } = controller;
+      const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+      const width = svg.viewBox.baseVal.width;
+      let position = 0.5;
+      let target = 0.5;
+      let velocity = 0;
+      let frame = 0;
+      let previousTime = 0;
+
+      const render = () =>
+        gradient.setAttribute("x1", String(position * width));
+      const tick = (time: number) => {
+        // Substeps keep the reference's spring stable even on slower displays.
+        let remaining = Math.min((time - previousTime) / 1000, 0.064);
+        previousTime = time;
+        while (remaining > 0) {
+          const dt = Math.min(remaining, 1 / 240);
+          velocity += (150 * (target - position) - 25 * velocity) * dt;
+          position += velocity * dt;
+          remaining -= dt;
+        }
+        if (
+          Math.abs(target - position) < 0.0001 &&
+          Math.abs(velocity) < 0.0001
+        ) {
+          position = target;
+          velocity = 0;
+          frame = 0;
+          render();
+          return;
+        }
+        render();
+        frame = requestAnimationFrame(tick);
+      };
+      const moveTo = (next: number) => {
+        target = next;
+        if (!frame) {
+          previousTime = performance.now();
+          frame = requestAnimationFrame(tick);
+        }
+      };
+      const reset = () => {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        position = target = 0.5;
+        velocity = 0;
+        render();
+      };
+
+      this.addEventListener(
+        "pointermove",
+        event => {
+          if (reducedMotion.matches || event.pointerType === "touch") return;
+          // Measure the actual artwork, excluding the responsive side gutters.
+          const bounds = svg.getBoundingClientRect();
+          if (bounds.width)
+            moveTo(
+              Math.max(
+                0,
+                Math.min(1, (event.clientX - bounds.left) / bounds.width)
+              )
+            );
+        },
+        { signal }
+      );
+      this.addEventListener(
+        "pointerleave",
+        () => {
+          if (!reducedMotion.matches) moveTo(0.5);
+        },
+        { signal }
+      );
+      reducedMotion.addEventListener("change", reset, { signal });
+      render();
+      this.cleanup = () => {
+        controller.abort();
+        cancelAnimationFrame(frame);
+      };
+    }
+
+    private cleanup?: () => void;
+
+    disconnectedCallback() {
+      this.cleanup?.();
+    }
+  }
+
+  if (!customElements.get("footer-wordmark")) {
+    customElements.define("footer-wordmark", FooterWordmark);
+  }
+</script>

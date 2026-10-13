@@ -1,0 +1,1142 @@
+{
+  "site": {
+    "profile": {
+      "displayName": "Sameer Chauhan",
+      "namePronunciation": "/uploads/name_voice_0db892a93f.mp3",
+      "role": "Backend & AI Engineer",
+      "slogan": "Coding, Creativity, Coffee...",
+      "email": "sameer.fyi@hotmail.com",
+      "about": "My work sits at the intersection of backend engineering and AI. I focus on reliable Python services and secure AI systems.\n\n- **Current role:** AI Engineer Intern at FlyRank AI, developing backend services and AI-powered features.\n- **Research:** LLM safety, prompt injection defence and RAG-based malicious package detection at BITS Pilani, Dubai.\n- **Education:** Pursuing an M.Eng in Software Systems at BITS Pilani, Dubai.\n- **AWS certifications:** Cloud Practitioner, Solutions Architect Associate, Machine Learning Engineer Associate and DevOps Engineer Professional.\n\nI'm open to backend and AI engineering opportunities in the UAE, India and Europe.",
+      "avatar": "/uploads/1_8b7b49c3d2.png",
+      "avatarDark": "/uploads/Untitled_design_e07ce5cf1d.png",
+      "avatarAlt": "Sameer Chauhan",
+      "avatarLabel": "Fortnite",
+      "avatarShirt": {
+        "color": "#17171a",
+        "logo": "/uploads/Fortnite_T_shirt_logo_095baac100.svg",
+        "logoWidth": 11,
+        "logoHeight": 24
+      },
+      "avatarVariants": [
+        {
+          "key": "lego",
+          "label": "LEGO",
+          "enabled": true,
+          "avatar": "/uploads/LEGO_portrait_light_76c09160ab.webp",
+          "avatarDark": "/uploads/LEGO_portrait_dark_9015a84499.webp",
+          "shirt": {
+            "color": "#e3000b",
+            "logo": "/uploads/LEGO_T_shirt_logo_2e5acba987.svg",
+            "logoWidth": 26,
+            "logoHeight": 13
+          },
+          "imageScale": 1.24,
+          "imageOriginY": 30
+        },
+        {
+          "key": "gta6",
+          "label": "GTA VI",
+          "enabled": true,
+          "avatar": "/uploads/GTA_VI_portrait_light_343938d413.webp",
+          "avatarDark": "/uploads/GTA_VI_portrait_dark_a2086cc0e0.webp",
+          "shirt": {
+            "color": "#653276",
+            "logo": "/uploads/Rockstar_T_shirt_logo_27b0e0e0fc.svg",
+            "logoWidth": 24,
+            "logoHeight": 24
+          },
+          "imageScale": 1,
+          "imageOriginY": 50
+        }
+      ],
+      "verified": true,
+      "location": "Dubai, United Arab Emirates",
+      "timeZone": null,
+      "locationPhotoSubject": null,
+      "locationPhoto": null,
+      "pronouns": "he/him",
+      "showLocalTime": true
+    },
+    "socialLinks": [
+      {
+        "label": "AWS ",
+        "href": "https://www.credly.com/badges/1576adbd-adc3-4621-bf32-01e846e0d25e",
+        "prefix": null,
+        "suffix": "Certified ML and Cloud Engineer",
+        "icon": "AWS",
+        "image": null,
+        "showInProfile": true,
+        "showInFooter": false,
+        "showPreview": null,
+        "previewImage": null
+      },
+      {
+        "label": "Resume",
+        "href": "https://drive.google.com/file/d/1W9cpUYEJuY1BHmFLd2UDffevqnnBz-W-/view?usp=sharing",
+        "prefix": "Take a look at my",
+        "suffix": null,
+        "icon": "Briefcase",
+        "image": null,
+        "showInProfile": true,
+        "showInFooter": false,
+        "showPreview": null,
+        "previewImage": null
+      },
+      {
+        "label": "LinkedIn",
+        "href": "https://www.linkedin.com/in/s4meer",
+        "prefix": "Let's connect on",
+        "suffix": null,
+        "icon": "Linkedin",
+        "image": null,
+        "showInProfile": true,
+        "showInFooter": true,
+        "showPreview": null,
+        "previewImage": null
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/s4meer-git",
+        "prefix": "Check out my repos on",
+        "suffix": null,
+        "icon": "Github",
+        "image": null,
+        "showInProfile": true,
+        "showInFooter": true,
+        "showPreview": null,
+        "previewImage": null
+      },
+      {
+        "label": "X.com",
+        "href": "https://x.com/s4meer_x",
+        "prefix": "Follow me on",
+        "suffix": null,
+        "icon": "X",
+        "image": null,
+        "showInProfile": true,
+        "showInFooter": true,
+        "showPreview": true,
+        "previewImage": "/uploads/Screenshot_1799_36f745cac7.png"
+      }
+    ],
+    "spotify": {
+      "enabled": true,
+      "prefix": "Vibing to",
+      "trackTitle": "Billie Jean",
+      "artist": "Michael Jackson",
+      "trackUrl": "https://open.spotify.com/track/5ChkMS8OtdzJeqyybCc9R5",
+      "albumCover": "/uploads/billie_jean_cover_7b237ad3e8.jpg",
+      "source": "live",
+      "idleText": null
+    },
+    "badges": {
+      "enabled": true,
+      "shuffle": true,
+      "shuffleSeconds": 4
+    },
+    "skills": [
+      {
+        "title": "MongoDB",
+        "group": "Backend & Database",
+        "href": "https://www.mongodb.com/",
+        "icon": "MongoDB",
+        "image": null
+      },
+      {
+        "title": "FastAPI",
+        "group": "Backend & Database",
+        "href": "https://fastapi.tiangolo.com/",
+        "icon": "FastAPI",
+        "image": null
+      },
+      {
+        "title": "Django",
+        "group": "Backend & Database",
+        "href": "https://www.djangoproject.com/",
+        "icon": "DjangoIcon",
+        "image": null
+      },
+      {
+        "title": "Flask",
+        "group": "Backend & Database",
+        "href": "https://flask.palletsprojects.com/",
+        "icon": "FlaskIcon",
+        "image": null
+      },
+      {
+        "title": "PostgreSQL",
+        "group": "Backend & Database",
+        "href": "https://www.postgresql.org/",
+        "icon": "PostgreSQL",
+        "image": null
+      },
+      {
+        "title": "Redis",
+        "group": "Backend & Database",
+        "href": "https://redis.io/",
+        "icon": "Redis",
+        "image": null
+      },
+      {
+        "title": "LangChain",
+        "group": "AI & Research",
+        "href": "https://docs.langchain.com/oss/python/langchain/overview",
+        "icon": "LangChain",
+        "image": null
+      },
+      {
+        "title": "LangGraph",
+        "group": "AI & Research",
+        "href": "https://docs.langchain.com/oss/python/langgraph/overview",
+        "icon": "LangGraph",
+        "image": null
+      },
+      {
+        "title": "MCP",
+        "group": "AI & Research",
+        "href": "https://modelcontextprotocol.io/",
+        "icon": "ModelContextProtocol",
+        "image": null
+      },
+      {
+        "title": "RAG",
+        "group": "AI & Research",
+        "href": "https://docs.langchain.com/oss/python/langchain/retrieval",
+        "icon": "BookOpen",
+        "image": null
+      },
+      {
+        "title": "OpenAI API",
+        "group": "AI & Research",
+        "href": "https://platform.openai.com/",
+        "icon": "OpenAIIcon",
+        "image": null
+      },
+      {
+        "title": "Google Gemini API",
+        "group": "AI & Research",
+        "href": "https://ai.google.dev/",
+        "icon": "GoogleGemini",
+        "image": null
+      },
+      {
+        "title": "pgvector",
+        "group": "AI & Research",
+        "href": "https://github.com/pgvector/pgvector",
+        "icon": "PostgreSQL",
+        "image": null
+      },
+      {
+        "title": "Chroma",
+        "group": "AI & Research",
+        "href": "https://www.trychroma.com/",
+        "icon": "Chroma",
+        "image": null
+      },
+      {
+        "title": "Qdrant",
+        "group": "AI & Research",
+        "href": "https://qdrant.tech/",
+        "icon": "Qdrant",
+        "image": null
+      },
+      {
+        "title": "pandas",
+        "group": "AI & Research",
+        "href": "https://pandas.pydata.org/",
+        "icon": "Pandas",
+        "image": null
+      },
+      {
+        "title": "NumPy",
+        "group": "AI & Research",
+        "href": "https://numpy.org/",
+        "icon": "NumPy",
+        "image": null
+      },
+      {
+        "title": "Matplotlib",
+        "group": "AI & Research",
+        "href": "https://matplotlib.org/",
+        "icon": "Matplotlib",
+        "image": null
+      },
+      {
+        "title": "Claude Suite",
+        "group": "Workflow & AI",
+        "href": "https://claude.ai/",
+        "icon": "ClaudeIcon",
+        "image": null
+      },
+      {
+        "title": "Cursor",
+        "group": "Workflow & AI",
+        "href": "https://cursor.com/",
+        "icon": "Cursor",
+        "image": null
+      },
+      {
+        "title": "Gemini",
+        "group": "Workflow & AI",
+        "href": "https://gemini.google.com/",
+        "icon": "GoogleGemini",
+        "image": null
+      },
+      {
+        "title": "ChatGPT",
+        "group": "Workflow & AI",
+        "href": "https://chatgpt.com/",
+        "icon": "OpenAIIcon",
+        "image": null
+      },
+      {
+        "title": "Git",
+        "group": "Workflow & AI",
+        "href": "https://git-scm.com/",
+        "icon": "Git",
+        "image": null
+      },
+      {
+        "title": "GitHub",
+        "group": "Workflow & AI",
+        "href": "https://github.com/",
+        "icon": "Github",
+        "image": null
+      },
+      {
+        "title": "Docker",
+        "group": "Workflow & AI",
+        "href": "https://www.docker.com/",
+        "icon": "Docker",
+        "image": null
+      },
+      {
+        "title": "Vercel",
+        "group": "Workflow & AI",
+        "href": "https://vercel.com/",
+        "icon": "VercelIcon",
+        "image": null
+      },
+      {
+        "title": "AWS",
+        "group": "Cloud & DevOps",
+        "href": "https://aws.amazon.com/",
+        "icon": "AWS",
+        "image": null
+      },
+      {
+        "title": "GitHub Actions",
+        "group": "Cloud & DevOps",
+        "href": "https://github.com/features/actions",
+        "icon": "GitHubActions",
+        "image": null
+      },
+      {
+        "title": "React",
+        "group": "Frontend & Design",
+        "href": "https://react.dev/",
+        "icon": "React",
+        "image": null
+      },
+      {
+        "title": "Next.js",
+        "group": "Frontend & Design",
+        "href": "https://nextjs.org/",
+        "icon": "NextJsIcon",
+        "image": null
+      },
+      {
+        "title": "Tailwind CSS",
+        "group": "Frontend & Design",
+        "href": "https://tailwindcss.com/",
+        "icon": "TailwindCSS",
+        "image": null
+      },
+      {
+        "title": "Figma",
+        "group": "Frontend & Design",
+        "href": "https://www.figma.com/",
+        "icon": "Figma",
+        "image": null
+      },
+      {
+        "title": "Python",
+        "group": "Language",
+        "href": "https://www.python.org/",
+        "icon": "Python",
+        "image": null
+      },
+      {
+        "title": "JavaScript",
+        "group": "Language",
+        "href": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+        "icon": "JavaScript",
+        "image": null
+      },
+      {
+        "title": "SQL",
+        "group": "Language",
+        "href": "https://www.postgresql.org/docs/current/sql.html",
+        "icon": "SQLIcon",
+        "image": null
+      },
+      {
+        "title": "Java",
+        "group": "Language",
+        "href": "https://dev.java/",
+        "icon": "Java",
+        "image": null
+      }
+    ],
+    "contributions": {
+      "enabled": true,
+      "githubUsername": "s4meer-git",
+      "leetcodeUsername": "s4meer",
+      "defaultView": "overall",
+      "overallLabel": "Overall",
+      "githubLabel": "GitHub",
+      "leetcodeLabel": "LeetCode"
+    },
+    "cta": {
+      "enabled": true,
+      "eyebrow": "Let's build something useful",
+      "heading": "Get in touch",
+      "description": "Have a role, a project idea, or a question about something I have built? Get in touch.",
+      "methods": [
+        {
+          "icon": "Mail",
+          "title": "sameer.fyi@hotmail.com",
+          "subtitle": "Quick inquiries & questions",
+          "href": "mailto:sameer.fyi@hotmail.com",
+          "newTab": false
+        },
+        {
+          "icon": "FileText",
+          "title": "View my résumé",
+          "subtitle": "Experience, skills & certifications",
+          "href": "https://drive.google.com/file/d/1W9cpUYEJuY1BHmFLd2UDffevqnnBz-W-/view?usp=sharing",
+          "newTab": true
+        },
+        {
+          "icon": "Linkedin",
+          "title": "Connect on LinkedIn",
+          "subtitle": "Work history & recommendations",
+          "href": "https://www.linkedin.com/in/s4meer",
+          "newTab": true
+        },
+        {
+          "icon": "Github",
+          "title": "Explore my GitHub",
+          "subtitle": "Code, projects & experiments",
+          "href": "https://github.com/s4meer-git",
+          "newTab": true
+        }
+      ],
+      "formEnabled": true,
+      "formHeading": "Send a message",
+      "formDescription": "Tell me a little about what you have in mind. I will reply by email.",
+      "formButton": "Send message",
+      "formSuccess": "Thanks for reaching out. Your message is in, and I'll get back to you."
+    },
+    "emailBranding": null,
+    "navigation": [
+      {
+        "label": "Home",
+        "href": "/"
+      },
+      {
+        "label": "Articles",
+        "href": "/articles"
+      },
+      {
+        "label": "Publications",
+        "href": "/publications"
+      },
+      {
+        "label": "Projects",
+        "href": "/projects"
+      }
+    ],
+    "commandMenu": {
+      "enabled": true,
+      "placeholder": "Type a command or search…",
+      "emptyText": "No results found.",
+      "showSections": true,
+      "showArticles": true,
+      "showPublications": null,
+      "showProjects": true,
+      "showTopics": true,
+      "showExperience": true,
+      "showCertifications": true,
+      "showSkills": true,
+      "showSocialLinks": true,
+      "showContact": true,
+      "showBrandAssets": true,
+      "showTheme": true,
+      "customLinks": []
+    },
+    "sectionLabels": {
+      "about": "About",
+      "skills": "Tech Stack",
+      "experience": "Experience",
+      "education": "Education",
+      "certifications": "Certifications"
+    },
+    "articleLabels": {
+      "pageTitle": "Articles",
+      "pageDescription": "Exploring frontend, backend, and full-stack development deep dives, series, and hands-on insights.",
+      "listHeading": "Articles",
+      "categoriesHeading": "Categories",
+      "seriesHeading": "Series",
+      "categoryPageDescription": "Exploring {name} insights, lessons, and discoveries from my software engineering journey.",
+      "seriesPageDescription": "Deep dive into {name}, a curated series from my software engineering journey.",
+      "exerciseHeading": "Try it yourself",
+      "revealAnswerLabel": "Reveal the answer",
+      "solutionHeading": "A possible solution",
+      "closeAnswerLabel": "Close answer",
+      "shareHeading": "Share this article with your friends",
+      "shareDescription": "Know someone who would enjoy this? Send it their way.",
+      "copyLinkLabel": "Copy link",
+      "copiedLinkLabel": "Link copied",
+      "shareNativeLabel": "Share",
+      "shareLinkedInLabel": "LinkedIn",
+      "shareWhatsAppLabel": "WhatsApp",
+      "shareXLabel": "X",
+      "shareEmailLabel": "Email",
+      "sourceLinkLabel": "Original LinkedIn post",
+      "copyFailedLabel": "Copy the link from the address bar.",
+      "tagsHeading": "Topics",
+      "hashtagsHeading": "From the original post",
+      "showShareSection": true,
+      "shareNative": true,
+      "shareLinkedIn": true,
+      "shareWhatsApp": true,
+      "shareX": true,
+      "shareEmail": true,
+      "journalTitle": "Personal Journal",
+      "journalDescription": "Personal stories, university life and milestones along the way.",
+      "journalListHeading": "Journal entries",
+      "journalLinkLabel": "Personal Journey",
+      "articlesLinkLabel": "Technical articles"
+    },
+    "publicationLabels": {
+      "pageTitle": "Publications",
+      "pageDescription": "Papers and research I have published.",
+      "listHeading": "Publications",
+      "categoriesHeading": null,
+      "categoryPageDescription": null,
+      "abstractHeading": "Abstract",
+      "citeHeading": "Cite"
+    },
+    "projectLabels": {
+      "pageTitle": "My Projects",
+      "pageDescription": "A collection of things I’ve built, full-stack apps, experiments, and side projects.",
+      "coreHeading": "Built to Last",
+      "sideHeading": "Side Hustles",
+      "sourceButton": "Source",
+      "previewButton": "Preview"
+    },
+    "uiLabels": {
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "previous": "Previous",
+      "next": "Next",
+      "copyCode": "Copy",
+      "copiedCode": "Copied!",
+      "tableOfContents": "On this page",
+      "backToTop": "Back to top",
+      "theme": "Toggle theme"
+    },
+    "articlesPerPage": 6,
+    "publicationsPerPage": 10,
+    "footer": {
+      "title": "S4MEER.COM",
+      "homeHref": "/",
+      "repositoryUrl": "https://github.com/s4meer-git/portfolio27",
+      "repositoryBranch": "",
+      "developerBuildLabel": "Developer build",
+      "unavailableBuildLabel": "Unavailable",
+      "showWordmark": true,
+      "fields": [
+        {
+          "label": "Crafted by",
+          "kind": "links",
+          "width": "one",
+          "links": [
+            {
+              "label": "Sameer Chauhan",
+              "href": "mailto:sameer.fyi@hotmail.com",
+              "newTab": true
+            }
+          ]
+        },
+        {
+          "label": "Build",
+          "kind": "build",
+          "width": "one",
+          "links": []
+        },
+        {
+          "label": "Date",
+          "kind": "date",
+          "width": "one",
+          "links": []
+        },
+        {
+          "label": "Content",
+          "kind": "content-count",
+          "width": "one",
+          "links": []
+        },
+        {
+          "label": "Deployed on",
+          "kind": "links",
+          "width": "one",
+          "links": [
+            {
+              "label": "Local development",
+              "href": null,
+              "newTab": true
+            }
+          ]
+        },
+        {
+          "label": "Source code",
+          "kind": "source",
+          "width": "one",
+          "links": [
+            {
+              "label": "GitHub",
+              "href": null,
+              "newTab": true
+            }
+          ]
+        },
+        {
+          "label": "License",
+          "kind": "links",
+          "width": "one",
+          "links": [
+            {
+              "label": "Asset credits",
+              "href": "https://github.com/s4meer-git/portfolio27/blob/main/docs/third-party/sources.md",
+              "newTab": true
+            }
+          ]
+        },
+        {
+          "label": "Typeface",
+          "kind": "links",
+          "width": "one",
+          "links": [
+            {
+              "label": "Geist",
+              "href": "https://vercel.com/font",
+              "newTab": true
+            }
+          ]
+        },
+        {
+          "label": "Stack",
+          "kind": "stack",
+          "width": "two",
+          "links": []
+        },
+        {
+          "label": "Analytics",
+          "kind": "links",
+          "width": "one",
+          "links": [
+            {
+              "label": "Vercel Analytics",
+              "href": "https://vercel.com/analytics",
+              "newTab": true
+            }
+          ]
+        },
+        {
+          "label": "For agents",
+          "kind": "links",
+          "width": "one",
+          "links": [
+            {
+              "label": "llms.txt",
+              "href": "/llms.txt",
+              "newTab": true
+            },
+            {
+              "label": "index.md",
+              "href": "/index.md",
+              "newTab": true
+            }
+          ]
+        },
+        {
+          "label": "Inspired by",
+          "kind": "inspiration",
+          "width": "full",
+          "links": [
+            {
+              "label": "Chánh Đại",
+              "href": "https://chanhdai.com",
+              "newTab": true
+            },
+            {
+              "label": "Tailwind CSS",
+              "href": "https://tailwindcss.com",
+              "newTab": true
+            },
+            {
+              "label": "shadcn/ui",
+              "href": "https://ui.shadcn.com",
+              "newTab": true
+            },
+            {
+              "label": "Vercel",
+              "href": "https://vercel.com",
+              "newTab": true
+            },
+            {
+              "label": "Evil Charts",
+              "href": "https://evilcharts.com",
+              "newTab": true
+            },
+            {
+              "label": "Devouring Details",
+              "href": "https://devouringdetails.com",
+              "newTab": true
+            },
+            {
+              "label": "Skiper UI",
+              "href": "https://skiper-ui.com",
+              "newTab": true
+            },
+            {
+              "label": "Making Software",
+              "href": "https://www.makingsoftware.com",
+              "newTab": true
+            }
+          ]
+        }
+      ]
+    },
+    "seo": {
+      "title": "Sameer Chauhan",
+      "author": "Sameer Chauhan",
+      "profile": "https://s4meer.com",
+      "desc": "My digital space, projects, insights, and thoughts on software engineering.",
+      "ogImage": "/uploads/portfolio_og_4f1987d8aa.png",
+      "favicon": "/uploads/sc_favicon_02cb2d787b.svg",
+      "language": "en",
+      "canonicalOrigin": "https://s4meer.com",
+      "siteName": "Sameer Chauhan",
+      "titleTemplate": null,
+      "alternateNames": null,
+      "sameAs": null,
+      "ogImageAlt": null,
+      "twitterHandle": null,
+      "indexingEnabled": null,
+      "allowAiSearch": null,
+      "allowAiTraining": null,
+      "llmsEnabled": null,
+      "googleVerification": null,
+      "bingVerification": null,
+      "showDirectoryLinks": null,
+      "aboutTitle": null,
+      "domainsHeading": null,
+      "linksHeading": null,
+      "sitemapTitle": null,
+      "homeLabel": null,
+      "ownedDomains": [
+        {
+          "url": "https://sameerchauhan.com",
+          "label": "sameerchauhan.com",
+          "description": null,
+          "relationship": "alias",
+          "redirectToPrimary": true
+        },
+        {
+          "url": "https://sameerchauhan.in",
+          "label": "sameerchauhan.in",
+          "description": null,
+          "relationship": "alias",
+          "redirectToPrimary": true
+        },
+        {
+          "url": "https://sameer.com",
+          "label": "sameer.com",
+          "description": null,
+          "relationship": "alias",
+          "redirectToPrimary": true
+        },
+        {
+          "url": "https://sameer.in",
+          "label": "sameer.in",
+          "description": null,
+          "relationship": "alias",
+          "redirectToPrimary": true
+        },
+        {
+          "url": "https://sameerchauhan.de",
+          "label": "sameerchauhan.de",
+          "description": null,
+          "relationship": "alias",
+          "redirectToPrimary": true
+        },
+        {
+          "url": "https://sameerbitspilani.com",
+          "label": "sameerbitspilani.com",
+          "description": null,
+          "relationship": "alias",
+          "redirectToPrimary": true
+        },
+        {
+          "url": "https://sameermanipal.com",
+          "label": "sameermanipal.com",
+          "description": null,
+          "relationship": "alias",
+          "redirectToPrimary": true
+        }
+      ],
+      "pages": [],
+      "redirects": []
+    }
+  },
+  "experiences": [
+    {
+      "company": "FlyRank AI",
+      "companyLogo": null,
+      "companyIcon": "Sparkles",
+      "companyWebsite": null,
+      "linkedinUrl": "https://www.linkedin.com/company/flyrank/",
+      "location": "Chicago, Illinois",
+      "locationType": "Remote",
+      "isCurrentEmployer": true,
+      "order": 0,
+      "positions": [
+        {
+          "title": "AI Engineer Intern",
+          "icon": "CodeXml",
+          "employmentType": "Internship",
+          "startDate": "06.2026",
+          "endDate": null,
+          "description": "- Develop Python backend services with FastAPI for the project's AI workflows.\n- Work with LLM and RAG components, focusing on reliability and clear API design.\n- Collaborate with the remote engineering team through Git, code reviews and CI workflows.",
+          "skills": [
+            {
+              "label": "Python"
+            },
+            {
+              "label": "FastAPI"
+            },
+            {
+              "label": "LLM APIs"
+            },
+            {
+              "label": "RAG"
+            },
+            {
+              "label": "Git"
+            },
+            {
+              "label": "CI"
+            }
+          ],
+          "isExpanded": true
+        }
+      ]
+    },
+    {
+      "company": "BITS Pilani, Dubai Campus",
+      "companyLogo": "/uploads/BITS_Pilani_Dubai_official_emblem_0ceb634444.webp",
+      "companyIcon": "GraduationCap",
+      "companyWebsite": null,
+      "linkedinUrl": "https://www.linkedin.com/school/bitspilanidubai/",
+      "location": null,
+      "locationType": null,
+      "isCurrentEmployer": false,
+      "order": 1,
+      "positions": [
+        {
+          "title": "Student Researcher",
+          "icon": "BookOpen",
+          "employmentType": "Part-time",
+          "startDate": "09.2025",
+          "endDate": "06.2026",
+          "description": "- Researched LLM safety and AI supply-chain security.\n- Investigated prompt injection defences and RAG-based malicious package detection.\n- Built Python prototypes to test research ideas.\n- Worked on papers for submission to peer-reviewed security and AI publications.",
+          "skills": [
+            {
+              "label": "Python"
+            },
+            {
+              "label": "LLM Safety"
+            },
+            {
+              "label": "AI Supply-chain Security"
+            },
+            {
+              "label": "RAG"
+            },
+            {
+              "label": "NumPy"
+            },
+            {
+              "label": "Matplotlib"
+            }
+          ],
+          "isExpanded": true
+        }
+      ]
+    },
+    {
+      "company": "PwC Acceleration Center India",
+      "companyLogo": null,
+      "companyIcon": "ChartColumn",
+      "companyWebsite": null,
+      "linkedinUrl": "https://www.linkedin.com/company/pwc-ac-india/",
+      "location": "Jaipur, Rajasthan, India",
+      "locationType": "Remote",
+      "isCurrentEmployer": false,
+      "order": 2,
+      "positions": [
+        {
+          "title": "Data Analytics Trainee",
+          "icon": "ChartLine",
+          "employmentType": "Apprenticeship",
+          "startDate": "01.2024",
+          "endDate": "05.2024",
+          "description": "- Completed PwC's Launchpad Talent Enablement mentorship program.\n- Learned to build Python automation scripts for processing and validating datasets.\n- Worked with SQL and cloud tools to prepare client-facing analytics reports.",
+          "skills": [
+            {
+              "label": "Python"
+            },
+            {
+              "label": "SQL"
+            },
+            {
+              "label": "Data Analysis"
+            },
+            {
+              "label": "Cloud Tools"
+            },
+            {
+              "label": "Data Validation"
+            }
+          ],
+          "isExpanded": true
+        }
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "BITS Pilani, Dubai Campus",
+      "linkedinUrl": "https://www.linkedin.com/school/bitspilanidubai/",
+      "icon": "GraduationCap",
+      "logo": "/uploads/BITS_Pilani_Dubai_official_emblem_0ceb634444.webp",
+      "degree": "Master of Engineering",
+      "fieldOfStudy": "Software Systems",
+      "startDate": "2025",
+      "endDate": "2027 (expected)",
+      "description": "- **CGPA:** 9.23/10 (equivalent GPA: 3.69/4.00).\n- **Coursework:** Advanced Software Architecture, Machine Learning, Data Mining and Cloud Computing Systems.\n- **Focus areas:** Scalable system design, distributed algorithms and applied AI.\n- **Research:** Secure and responsible AI, with papers in progress.",
+      "skills": [
+        {
+          "label": "Software Architecture"
+        },
+        {
+          "label": "Machine Learning"
+        },
+        {
+          "label": "Distributed Systems"
+        },
+        {
+          "label": "Cloud Computing"
+        },
+        {
+          "label": "AI Security"
+        }
+      ],
+      "isExpanded": true,
+      "order": 0
+    },
+    {
+      "school": "Manipal University Jaipur",
+      "linkedinUrl": "https://www.linkedin.com/school/manipal-university-jaipur/",
+      "icon": "GraduationCap",
+      "logo": "/uploads/Manipal_University_Jaipur_official_emblem_a90b8b41c5.webp",
+      "degree": "Bachelor of Technology",
+      "fieldOfStudy": "Computer Science and Engineering",
+      "startDate": "09.2021",
+      "endDate": "08.2025",
+      "description": "- **CGPA:** 8.92/10 (GPA: 3.57/4).\n- **Academic honours:** Dean's List for Academic Excellence in semesters 5 to 8, with a GPA above 9 in each.\n- **MUJ Central:** Designed and built a student portal that brings academic resources together in one place.\n- **Campus involvement:** Held core team roles with IEEE, ACM and Google Developer Clubs.",
+      "skills": [
+        {
+          "label": "Computer Science"
+        },
+        {
+          "label": "Web Development"
+        },
+        {
+          "label": "MUJ Central"
+        },
+        {
+          "label": "IEEE"
+        },
+        {
+          "label": "ACM"
+        },
+        {
+          "label": "Google Developer Clubs"
+        }
+      ],
+      "isExpanded": true,
+      "order": 1
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Machine Learning Engineer – Associate",
+      "issuer": "Amazon Web Services",
+      "issuerLogo": null,
+      "issuerIcon": "AWS",
+      "badge": "/uploads/aws_ml_engineer_associate_f33b62adea.png",
+      "credentialUrl": "https://www.credly.com/badges/1576adbd-adc3-4621-bf32-01e846e0d25e/public_url",
+      "credentialId": "1576ADBD",
+      "issuedOn": null,
+      "expiresOn": null,
+      "order": 0
+    },
+    {
+      "name": "AI Technical Foundations",
+      "issuer": "Qualcomm",
+      "issuerLogo": "/uploads/vecteezy_qualcomm_logo_rounded_hd_67941714_1_3fee86ec2c.png",
+      "issuerIcon": null,
+      "badge": "/uploads/blob_62c8bb7be2.png",
+      "credentialUrl": "https://www.credly.com/badges/28c420af-c25a-4f35-b47b-5a34b2c91c31/linked_in_profile",
+      "credentialId": null,
+      "issuedOn": null,
+      "expiresOn": null,
+      "order": 0
+    },
+    {
+      "name": "AWS Certified Cloud Practitioner",
+      "issuer": "Amazon Web Services",
+      "issuerLogo": null,
+      "issuerIcon": "AWS",
+      "badge": "/uploads/aws_cloud_practitioner_f505d01f5a.png",
+      "credentialUrl": "https://www.credly.com/badges/1fdb6347-5ba9-44a4-977d-e58022c14c55/public_url",
+      "credentialId": "1FDB6347",
+      "issuedOn": null,
+      "expiresOn": null,
+      "order": 1
+    },
+    {
+      "name": "AWS Cloud Quest: Generative AI Practitioner",
+      "issuer": "Amazon Web Services",
+      "issuerLogo": null,
+      "issuerIcon": "AWS",
+      "badge": "/uploads/aws_cloud_quest_genai_edc584d46b.png",
+      "credentialUrl": "https://www.credly.com/badges/296c3642-55e6-44f9-9339-e3c3b8f1a948/public_url",
+      "credentialId": "296C3642",
+      "issuedOn": null,
+      "expiresOn": null,
+      "order": 2
+    },
+    {
+      "name": "Microsoft's AI Skill Fest",
+      "issuer": "Microsoft",
+      "issuerLogo": null,
+      "issuerIcon": "Microsoft",
+      "badge": "/uploads/ai_skills_fest_2026_00b18f0f7d.png",
+      "credentialUrl": "https://www.credly.com/badges/5d80ab07-e772-4173-9ff4-19f917962c37/public_url",
+      "credentialId": null,
+      "issuedOn": null,
+      "expiresOn": null,
+      "order": 4
+    }
+  ],
+  "categories": [
+    {
+      "name": "AI Engineering",
+      "slug": "ai-engineering",
+      "description": null,
+      "seo": null
+    },
+    {
+      "name": "Backend",
+      "slug": "backend",
+      "description": null,
+      "seo": null
+    },
+    {
+      "name": "Databases & Caching",
+      "slug": "databases-caching",
+      "description": null,
+      "seo": null
+    },
+    {
+      "name": "Distributed Systems",
+      "slug": "distributed-systems",
+      "description": null,
+      "seo": null
+    },
+    {
+      "name": "Learning & Certifications",
+      "slug": "learning-certifications",
+      "description": "Personal learning milestones and the practical lessons behind them.",
+      "seo": null
+    },
+    {
+      "name": "Networking & APIs",
+      "slug": "networking-apis",
+      "description": null,
+      "seo": null
+    },
+    {
+      "name": "Payments",
+      "slug": "payments",
+      "description": null,
+      "seo": null
+    },
+    {
+      "name": "Personal Journal",
+      "slug": "personal-journal",
+      "description": "Personal stories, university life and milestones along the way.",
+      "seo": null
+    },
+    {
+      "name": "System Design",
+      "slug": "system-design",
+      "description": null,
+      "seo": null
+    }
+  ],
+  "series": [
+    {
+      "name": "Backend Journey",
+      "slug": "backend-journey",
+      "description": null,
+      "seo": null
+    },
+    {
+      "name": "DesignFlix",
+      "slug": "designflix",
+      "description": null,
+      "seo": null
+    },
+    {
+      "name": "Learning in Public",
+      "slug": "learning-in-public",
+      "description": "What I learn while studying, building and earning certifications.",
+      "seo": null
+    },
+    {
+      "name": "System Design Notes",
+      "slug": "system-design-notes",
+      "description": null,
+      "seo": null
+    }
+  ],
+  "articles": [],
+  "publications": [],
+  "projects": []
+}

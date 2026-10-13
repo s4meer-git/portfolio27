@@ -1,0 +1,62 @@
+---
+import { ChevronUp } from "lucide-react";
+import { buttonVariants, cn } from "@/lib/utils";
+---
+
+<script>
+  import { scrollToY } from "@/lib/smooth-scroll";
+
+  /*
+    One scroll listener for the lifetime of the tab. This used to add a new listener
+    (and a new click handler) on every client-side navigation, so each page visited
+    made scrolling do a little more work. The work itself is batched to one check per
+    frame and only touches the DOM when the visibility actually flips.
+  */
+  let frame = 0;
+  let shown: boolean | undefined;
+
+  const update = () => {
+    frame = 0;
+    const button = document.getElementById("back-to-top");
+    if (!button) return;
+    const show = window.scrollY >= window.innerHeight;
+    if (show === shown && button.dataset.synced) return;
+    shown = show;
+    button.dataset.synced = "true";
+    button.classList.toggle("scale-0", !show);
+  };
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      frame ||= requestAnimationFrame(update);
+    },
+    { passive: true }
+  );
+
+  document.addEventListener("click", event => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest("#back-to-top")) scrollToY(0);
+  });
+
+  // The button is re-rendered by each navigation; sync the new one.
+  document.addEventListener("astro:page-load", update);
+</script>
+<button
+  id="back-to-top"
+  aria-label={Astro.locals.portfolio.site.uiLabels.backToTop}
+  title={Astro.locals.portfolio.site.uiLabels.backToTop}
+  class={cn(
+    buttonVariants({ size: "icon" }),
+    "fixed right-4 bottom-[4rem] scale-0 z-50 cursor-pointer duration-150 transition-transform rounded-full lg:left-[calc(100vw/2+400px)]"
+  )}
+>
+  <ChevronUp />
+</button>
+
+<style>
+  #back-to-top {
+    right: calc(1rem + var(--safe-area-right));
+    bottom: calc(4rem + var(--safe-area-bottom));
+  }
+</style>

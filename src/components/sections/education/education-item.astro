@@ -1,0 +1,149 @@
+---
+/**
+ * One school or course. Same anatomy as a role, so the two sections read alike.
+ * Ported from ncdai/chanhdai.com (MIT).
+ */
+import { Infinity as InfinityIcon } from "lucide-react";
+import OrganizationLogo from "@/components/ui/organization-logo.astro";
+import IconTile from "@/components/ui/icon-tile.astro";
+import Tag from "@/components/ui/tag.astro";
+import ChevronsUpDown from "@/components/ui/chevrons-up-down.astro";
+import CollapsibleRow from "@/components/ui/collapsible-row.astro";
+import MarkdownRenderer from "@/components/ui/markdown-renderer.astro";
+
+const { item } = Astro.props;
+
+const ongoing = !item.endDate;
+const hasDescription = Boolean(item.description?.trim());
+const skills = item.skills ?? [];
+---
+
+<div
+  class="group/education relative before:absolute before:left-3 before:h-full before:w-px before:bg-border"
+>
+  {/* Rounds off the timeline rail under the final entry. */}
+  <div
+    class="pointer-events-none absolute bottom-0 left-3 hidden size-4 bg-background group-last/education:flex"
+    aria-hidden="true"
+  >
+    <span
+      class="size-full -translate-y-[0.5625rem] rounded-bl-sm border-b border-l"
+    ></span>
+  </div>
+
+  <CollapsibleRow
+    expandable={hasDescription}
+    defaultOpen={item.isExpanded}
+    label={`${item.school} details`}
+  >
+    <Fragment slot="trigger">
+      <div class="relative z-1 mb-1 flex items-start gap-3 text-base">
+        <IconTile>
+          <OrganizationLogo
+            logo={item.logo}
+            linkedinUrl={item.linkedinUrl}
+            icon={item.icon}
+            fallback="GraduationCap"
+            className="size-4"
+          />
+        </IconTile>
+
+        <h3 class="item-title flex-1 font-medium text-balance">
+          {item.school}
+        </h3>
+
+        {
+          hasDescription && (
+            <div class="shrink-0 text-muted-foreground">
+              <ChevronsUpDown />
+            </div>
+          )
+        }
+      </div>
+
+      <dl
+        class="flex flex-wrap items-center gap-x-2 gap-y-1 pl-9 text-sm text-muted-foreground"
+      >
+        <div>
+          <dt class="sr-only">Study period</dt>
+          <dd class="flex items-center gap-0.5 tabular-nums">
+            <span>{item.startDate}</span>
+            <span class="font-mono">—</span>
+            {
+              ongoing ? (
+                <InfinityIcon
+                  className="size-4.5 translate-y-[0.5px]"
+                  aria-label="Present"
+                  strokeWidth={1.5}
+                />
+              ) : (
+                <span>{item.endDate}</span>
+              )
+            }
+          </dd>
+        </div>
+
+        {
+          item.degree && (
+            <>
+              <span class="h-4 w-px self-center bg-border" aria-hidden="true" />
+              <div>
+                <dt class="sr-only">Degree</dt>
+                <dd>{item.degree}</dd>
+              </div>
+            </>
+          )
+        }
+
+        {
+          item.fieldOfStudy && (
+            <>
+              <span class="h-4 w-px self-center bg-border" aria-hidden="true" />
+              <div>
+                <dt class="sr-only">Field of study</dt>
+                <dd>{item.fieldOfStudy}</dd>
+              </div>
+            </>
+          )
+        }
+      </dl>
+    </Fragment>
+
+    <Fragment slot="panel">
+      {
+        hasDescription && (
+          <MarkdownRenderer
+            className="markdown-description pt-3 pb-1 pl-9 text-sm"
+            content={item.description}
+          />
+        )
+      }
+    </Fragment>
+
+    <Fragment slot="after">
+      {
+        skills.length > 0 && (
+          <ul class="flex flex-wrap gap-1.5 pt-3 pl-9">
+            {skills.map((skill: string) => (
+              <li class="flex">
+                <Tag>{skill}</Tag>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </Fragment>
+  </CollapsibleRow>
+</div>
+
+<style>
+  /*
+    A school sits in the same visual slot as a job title: icon tile, name, chevron,
+    but it stays an <h3> because it is a top-level entry in the page outline. The
+    site now sets one family throughout, so this only guards against a future
+    heading rule pulling the two sections apart again.
+  */
+  .item-title {
+    font-family: inherit;
+  }
+</style>

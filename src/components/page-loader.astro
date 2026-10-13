@@ -1,0 +1,104 @@
+---
+import wordmark from "@/assets/sc-loader.svg?raw";
+import "@/styles/loader-trace.css";
+---
+
+<site-loader role="status" aria-label="Loading website" aria-live="polite" data-lenis-prevent>
+  <div class="loader-mark" set:html={wordmark} />
+</site-loader>
+
+<style>
+  site-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    touch-action: none;
+    contain: layout paint;
+  }
+  :global(html[data-page-loading]) site-loader { display: flex; }
+  :global(html[data-page-loading]) { overflow: hidden; scrollbar-gutter: stable; }
+  site-loader[data-leaving] { opacity: 0; transition: opacity 240ms ease-out; }
+  .loader-mark { width: clamp(126px, 16.8vw, 189px); }
+  .loader-mark :global(svg) { display: block; width: 100%; height: auto; overflow: visible; }
+  /* Compensate for the 30% smaller SVG so the visible strokes grow by 20%. */
+  .loader-mark :global(.loader-outline) { stroke: currentColor; stroke-width: 1.2; opacity: .22; }
+  .loader-mark :global(.loader-beam) {
+    stroke: currentColor;
+    stroke-width: 2.142857;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: var(--beam-length, 4.1) var(--beam-gap, 995.9);
+    animation: loader-outline-trace 4500ms linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .loader-mark :global(.loader-beam) { animation: none; display: none; }
+    .loader-mark :global(.loader-outline) { opacity: .65; }
+    site-loader[data-leaving] { transition: none; }
+  }
+</style>
+
+<script>
+  import { waitForPage } from "@/lib/page-ready";
+
+  class SiteLoader extends HTMLElement {
+    private controller?: AbortController;
+
+    connectedCallback() {
+      if (!document.documentElement.hasAttribute("data-page-loading")) return;
+      this.controller?.abort();
+      const controller = this.controller = new AbortController();
+      const content = document.querySelector<HTMLElement>("[data-page-content]");
+      if (content) content.inert = true;
+      this.addEventListener("wheel", event => event.preventDefault(), { passive: false, signal: controller.signal });
+      document.addEventListener("astro:before-swap", () => this.release(), { once: true, signal: controller.signal });
+
+      void Promise.allSettled([waitForPage(controller.signal), this.firstTrace(controller.signal)]).then(async () => {
+        if (controller.signal.aborted) return;
+        this.setAttribute("data-leaving", "");
+        await Promise.allSettled(this.getAnimations().map(animation => animation.finished));
+        if (!controller.signal.aborted) this.release();
+      });
+    }
+
+    private async firstTrace(signal: AbortSignal) {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const trace = this.querySelector(".loader-beam")?.getAnimations()[0];
+      if (!trace?.effect) return;
+      await trace.ready;
+      if (signal.aborted) return;
+      const duration = Number(trace.effect.getTiming().duration);
+      const elapsed = Number(trace.currentTime || 0);
+      if (elapsed >= duration) return;
+      // One scheduled wake-up; the outline itself stays entirely CSS animated.
+      await new Promise<void>(resolve => {
+        const finish = () => {
+          clearTimeout(timer);
+          signal.removeEventListener("abort", finish);
+          resolve();
+        };
+        const timer = setTimeout(finish, duration - elapsed);
+        signal.addEventListener("abort", finish, { once: true });
+      });
+    }
+
+    private release() {
+      document.documentElement.removeAttribute("data-page-loading");
+      const content = document.querySelector<HTMLElement>("[data-page-content]");
+      if (content) content.inert = false;
+      this.controller?.abort();
+      this.removeAttribute("data-leaving");
+      document.dispatchEvent(new Event("site:ready"));
+    }
+
+    disconnectedCallback() {
+      // Removal during startup must release the inert content and scroll lock.
+      if (this.controller && !this.controller.signal.aborted) this.release();
+    }
+  }
+  if (!customElements.get("site-loader")) customElements.define("site-loader", SiteLoader);
+</script>

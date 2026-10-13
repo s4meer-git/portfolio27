@@ -1,0 +1,68 @@
+{
+  "kind": "collectionType",
+  "collectionName": "projects",
+  "info": {
+    "singularName": "project",
+    "pluralName": "projects",
+    "displayName": "Projects",
+    "description": "Work listed at /projects."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "name",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "core",
+        "side"
+      ],
+      "default": "core",
+      "required": true
+    },
+    "technologies": {
+      "type": "component",
+      "component": "portfolio.tag",
+      "repeatable": true
+    },
+    "sourceCode": {
+      "type": "string"
+    },
+    "preview": {
+      "type": "string"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "body": {
+      "type": "richtext"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0,
+      "required": true
+    },
+    "seo": {
+      "type": "component",
+      "component": "portfolio.page-seo",
+      "repeatable": false
+    }
+  }
+}

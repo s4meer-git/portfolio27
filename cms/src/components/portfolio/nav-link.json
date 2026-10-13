@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_portfolio_nav_link",
+  "info": {
+    "displayName": "Navigation link",
+    "description": "One entry in the top navigation bar."
+  },
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "href": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

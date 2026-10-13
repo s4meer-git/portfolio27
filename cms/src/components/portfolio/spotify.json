@@ -1,0 +1,45 @@
+{
+  "collectionName": "components_portfolio_spotify",
+  "info": {
+    "displayName": "Spotify status",
+    "description": "Live Spotify listening activity or a manually selected music pick."
+  },
+  "attributes": {
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "prefix": {
+      "type": "string",
+      "default": "Vibing to"
+    },
+    "trackTitle": {
+      "type": "string"
+    },
+    "artist": {
+      "type": "string"
+    },
+    "trackUrl": {
+      "type": "string"
+    },
+    "albumCover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "source": {
+      "type": "enumeration",
+      "enum": [
+        "live",
+        "manual"
+      ],
+      "default": "live"
+    },
+    "idleText": {
+      "type": "string",
+      "default": "Recently vibing to"
+    }
+  }
+}

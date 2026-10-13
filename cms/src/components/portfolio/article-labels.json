@@ -1,0 +1,142 @@
+{
+  "collectionName": "components_portfolio_article_labels",
+  "info": {
+    "displayName": "Articles wording",
+    "description": "Wording on the articles pages. The two page descriptions may contain {name}, replaced by the category or series name."
+  },
+  "attributes": {
+    "pageTitle": {
+      "type": "string"
+    },
+    "pageDescription": {
+      "type": "text"
+    },
+    "listHeading": {
+      "type": "string"
+    },
+    "categoriesHeading": {
+      "type": "string"
+    },
+    "seriesHeading": {
+      "type": "string"
+    },
+    "categoryPageDescription": {
+      "type": "text"
+    },
+    "seriesPageDescription": {
+      "type": "text"
+    },
+    "exerciseHeading": {
+      "type": "string",
+      "default": "Try it yourself"
+    },
+    "revealAnswerLabel": {
+      "type": "string",
+      "default": "Reveal the answer"
+    },
+    "solutionHeading": {
+      "type": "string",
+      "default": "A possible solution"
+    },
+    "closeAnswerLabel": {
+      "type": "string",
+      "default": "Close answer"
+    },
+    "shareHeading": {
+      "type": "string",
+      "default": "Share this article with your friends"
+    },
+    "shareDescription": {
+      "type": "string",
+      "default": "Know someone who would enjoy this? Send it their way."
+    },
+    "copyLinkLabel": {
+      "type": "string",
+      "default": "Copy link"
+    },
+    "copiedLinkLabel": {
+      "type": "string",
+      "default": "Link copied"
+    },
+    "shareNativeLabel": {
+      "type": "string",
+      "default": "Share"
+    },
+    "shareLinkedInLabel": {
+      "type": "string",
+      "default": "LinkedIn"
+    },
+    "shareWhatsAppLabel": {
+      "type": "string",
+      "default": "WhatsApp"
+    },
+    "shareXLabel": {
+      "type": "string",
+      "default": "X"
+    },
+    "shareEmailLabel": {
+      "type": "string",
+      "default": "Email"
+    },
+    "sourceLinkLabel": {
+      "type": "string",
+      "default": "Original LinkedIn post"
+    },
+    "copyFailedLabel": {
+      "type": "string",
+      "default": "Copy the link from the address bar."
+    },
+    "tagsHeading": {
+      "type": "string",
+      "default": "Topics"
+    },
+    "hashtagsHeading": {
+      "type": "string",
+      "default": "From the original post"
+    },
+    "showShareSection": {
+      "type": "boolean",
+      "default": true
+    },
+    "shareNative": {
+      "type": "boolean",
+      "default": true
+    },
+    "shareLinkedIn": {
+      "type": "boolean",
+      "default": true
+    },
+    "shareWhatsApp": {
+      "type": "boolean",
+      "default": true
+    },
+    "shareX": {
+      "type": "boolean",
+      "default": true
+    },
+    "shareEmail": {
+      "type": "boolean",
+      "default": true
+    },
+    "journalTitle": {
+      "type": "string",
+      "default": "Personal Journal"
+    },
+    "journalDescription": {
+      "type": "string",
+      "default": "Personal stories, university life and milestones along the way."
+    },
+    "journalListHeading": {
+      "type": "string",
+      "default": "Journal entries"
+    },
+    "journalLinkLabel": {
+      "type": "string",
+      "default": "Personal Journal"
+    },
+    "articlesLinkLabel": {
+      "type": "string",
+      "default": "Technical articles"
+    }
+  }
+}

@@ -1,0 +1,149 @@
+---
+/** Grouped rows adapted from ncdai/chanhdai.com (MIT), with CMS-owned content. */
+import Box from "@/components/box/index.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxTitle from "@/components/box/title.astro";
+import CmsIcon from "@/components/ui/cms-icon.astro";
+
+const { site } = Astro.locals.portfolio;
+const groups = new Map<string, typeof site.skills>();
+for (const skill of site.skills) {
+  const group = skill.group?.trim() || "";
+  const items = groups.get(group) || [];
+  items.push(skill);
+  groups.set(group, items);
+}
+const hasGroups = [...groups.keys()].some(Boolean);
+---
+
+<Box id="stack">
+  <BoxHeader>
+    <BoxTitle>{site.sectionLabels.skills}</BoxTitle>
+  </BoxHeader>
+  <div class:list={["stack-groups", { "has-groups": hasGroups }]}>
+    {
+      [...groups].map(([group, items], index) => (
+        <div class:list={["stack-row", { "is-ungrouped": !group }]}>
+          {group && (
+            <h3 id={`stack-group-${index + 1}`} class="stack-group-heading">
+              <span class="stack-group-number" aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              {group}
+            </h3>
+          )}
+          <ul
+            class="skills-list"
+            aria-labelledby={group ? `stack-group-${index + 1}` : undefined}
+            aria-label={!group ? site.sectionLabels.skills : undefined}
+          >
+            {items.map(item => (
+              <li>
+                <a
+                  href={item.href || undefined}
+                  target={item.href ? "_blank" : undefined}
+                  rel={item.href ? "noopener noreferrer" : undefined}
+                  class="skill-item"
+                >
+                  <CmsIcon name={item.icon} image={item.image} className="size-3.5 shrink-0" />
+                  <span>{item.title}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</Box>
+
+<style>
+  .stack-groups {
+    --stack-label-width: 12rem;
+    position: relative;
+  }
+  .stack-row {
+    position: relative;
+    display: grid;
+    align-items: start;
+    gap: 0.375rem 0;
+    padding-block: 0.75rem;
+  }
+  .stack-row:not(:last-child) {
+    border-bottom: 1px dashed var(--color-border);
+  }
+  .stack-group-heading {
+    min-width: 0;
+    padding-left: 1rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5rem;
+  }
+  .stack-group-number {
+    margin-right: 0.375rem;
+    font-family: var(--font-mono);
+    color: var(--color-muted-foreground);
+    user-select: none;
+  }
+  .skills-list {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding-inline: 1rem;
+  }
+  .skills-list > li {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .skill-item {
+    display: inline-flex;
+    min-height: 1.5rem;
+    max-width: 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3125rem;
+    border-radius: 9999px;
+    padding: 0.25rem 0.5rem;
+    background: color-mix(in srgb, var(--color-muted) 40%, var(--color-background));
+    box-shadow: inset 0 0 0 1px var(--color-border);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    overflow-wrap: anywhere;
+    transition: background-color 150ms ease;
+  }
+  .skill-item:hover {
+    background: var(--color-accent);
+  }
+  .skill-item:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+  .skill-item :global(svg),
+  .skill-item :global(img) {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+  }
+  @media (min-width: 640px) {
+    .has-groups::before {
+      position: absolute;
+      inset-block: 0;
+      left: var(--stack-label-width);
+      width: 1px;
+      border-right: 1px dashed var(--color-border);
+      content: "";
+      pointer-events: none;
+    }
+    .stack-row:not(.is-ungrouped) {
+      grid-template-columns: var(--stack-label-width) minmax(0, 1fr);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skill-item {
+      transition: none;
+    }
+  }
+</style>

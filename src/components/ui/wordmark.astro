@@ -1,0 +1,27 @@
+---
+import svg from "../../../public/brand/sc-wordmark.svg?raw";
+
+interface Props {
+  class?: string;
+}
+---
+
+<span
+  class:list={["wordmark", Astro.props.class]}
+  aria-hidden="true"
+  set:html={svg}
+/>
+
+<style>
+  .wordmark {
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 2.75rem;
+    vertical-align: middle;
+  }
+  .wordmark :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>

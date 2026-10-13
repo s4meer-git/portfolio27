@@ -1,0 +1,152 @@
+---
+import { capitalizeFirstLetter } from "@/lib/utils";
+import Layout from "./layout.astro";
+import Breadcrumbs from "@/components/breadcrumbs.astro";
+import { ArrowLeft } from "lucide-react";
+import Navbar from "@/components/navbar/index.astro";
+import Footer from "@/components/footer.astro";
+import Toc from "@/components/toc.astro";
+
+import Pattern from "@/components/ui/pattern.astro";
+
+import Box from "@/components/box/index.astro";
+import BoxTitle from "@/components/box/title.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxContent from "@/components/box/content.astro";
+
+import type { MarkdownHeading } from "astro";
+import LinkBtn from "@/components/ui/link-btn.astro";
+
+interface Props {
+  title: string;
+  readTime: string;
+  date: Date;
+  headings: MarkdownHeading[];
+  image?: string;
+  description: string;
+  /** Where the back arrow goes. */
+  backHref?: string;
+  /** Replaces "date • read time" above the title (publications show their venue). */
+  meta?: string;
+}
+
+const {
+  title,
+  readTime,
+  description,
+  date,
+  headings,
+  image,
+  backHref = "/articles",
+  meta,
+} = Astro.props;
+
+const formattedDate = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+})
+  .format(date)
+  .replace(/\//g, ".");
+---
+
+<Layout title={`${title}`} ogImage={image} description={description}>
+  <Navbar className="top-1" />
+
+  <main aria-label="Main content" class="min-h-screen">
+    <div class="mx-auto max-w-3xl">
+      <Pattern className="h-14">
+        <LinkBtn
+          ariaLabel="Back link"
+          className="absolute bottom-0 left-2 z-1"
+          href={backHref}
+        >
+          <ArrowLeft />
+        </LinkBtn>
+      </Pattern>
+
+      <Breadcrumbs />
+      <Box>
+        {/* Both headers here sit on a pattern strip, which draws its own rule. */}
+        <BoxHeader divider={false} class="text-sm !font-medium text-muted-foreground">
+          {meta ?? `${formattedDate} • ${readTime}`}
+        </BoxHeader>
+
+        <Pattern className="screen-line-after" />
+
+        <BoxHeader divider={false}>
+          <BoxTitle as="h1" className="text-2xl !font-medium md:text-3xl"
+            >{capitalizeFirstLetter(title)}</BoxTitle
+          >
+        </BoxHeader>
+
+        <Pattern />
+      </Box>
+    </div>
+
+    <div class="relative mx-auto flex max-w-3xl">
+      <Box className="min-w-full">
+        <BoxContent className="pt-8">
+          <article
+            class="prose min-w-full"
+            data-copy={Astro.locals.portfolio.site.uiLabels.copyCode}
+            data-copied={Astro.locals.portfolio.site.uiLabels.copiedCode}
+          >
+            <slot />
+          </article>
+        </BoxContent>
+      </Box>
+
+      <Toc headings={headings} />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<script>
+  let articleEvents: AbortController | undefined;
+  document.addEventListener("astro:page-load", () => {
+    articleEvents?.abort();
+    document.querySelector('[data-article-progress]')?.remove();
+    const article = document.querySelector<HTMLElement>('article.prose[data-copy]');
+    if (!article) return;
+    articleEvents = new AbortController();
+    const { signal } = articleEvents;
+    const container = document.createElement('div');
+    container.dataset.articleProgress = '';
+    container.className = 'fixed top-0 z-10 h-1 w-full bg-background';
+    container.setAttribute('aria-hidden', 'true');
+    const bar = document.createElement('div');
+    bar.className = 'h-1 w-0 bg-blue-500';
+    container.append(bar);
+    document.body.append(container);
+    const update = () => {
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      bar.style.width = `${height > 0 ? Math.min(100, Math.max(0, document.documentElement.scrollTop / height * 100)) : 100}%`;
+    };
+    document.addEventListener('scroll', update, { passive: true, signal });
+    window.addEventListener('resize', update, { signal });
+    update();
+    for (const block of article.querySelectorAll<HTMLPreElement>('pre')) {
+      if (block.querySelector('.copy-code')) continue;
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'relative';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'copy-code';
+      button.textContent = article.dataset.copy || '';
+      block.parentNode?.insertBefore(wrapper, block);
+      wrapper.append(block);
+      block.append(button);
+      button.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(block.querySelector('code')?.textContent || '');
+          button.textContent = article.dataset.copied || '';
+          setTimeout(() => { if (button.isConnected) button.textContent = article.dataset.copy || ''; }, 1000);
+        } catch { button.textContent = article.dataset.copy || ''; }
+      }, { signal });
+    }
+  });
+  document.addEventListener('astro:before-swap', () => articleEvents?.abort());
+</script>

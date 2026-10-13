@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_portfolio_email_branding",
+  "info": {
+    "displayName": "Contact email branding",
+    "description": "Website identity, signature and links in incoming contact notifications."
+  },
+  "attributes": {
+    "theme": { "type": "enumeration", "enum": ["dark", "light"], "default": "dark" },
+    "logo": { "type": "media", "multiple": false, "allowedTypes": ["images"] },
+    "logoDark": { "type": "media", "multiple": false, "allowedTypes": ["images"] },
+    "senderAvatar": { "type": "media", "multiple": false, "allowedTypes": ["images"] },
+    "websiteDescription": { "type": "text", "maxLength": 500 },
+    "signatureText": { "type": "text", "maxLength": 500 },
+    "signatureLinks": { "type": "component", "component": "portfolio.nav-link", "repeatable": true },
+    "showProfilePhoto": { "type": "boolean", "default": true },
+    "showFooterWordmark": { "type": "boolean", "default": true },
+    "footerNote": { "type": "text", "maxLength": 500 }
+  }
+}

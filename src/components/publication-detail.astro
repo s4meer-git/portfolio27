@@ -1,0 +1,109 @@
+---
+/**
+ * A publication's page: authors, links to the paper, the abstract, an optional
+ * write-up, and the BibTeX (a code block, so the article layout gives it a copy
+ * button). The counterpart of article-detail.
+ */
+import { ExternalLink, FileDown, Link2 } from "lucide-react";
+import ArticleLayout from "@/layouts/article-layout.astro";
+import LinkBtn from "@/components/ui/link-btn.astro";
+import { renderMarkdown } from "@/lib/cms-markdown";
+import { PUBLICATION_KINDS, authorList, doiUrl, isOwner } from "@/lib/publications";
+
+const { publication } = Astro.props;
+const { site } = Astro.locals.portfolio;
+const labels = site.publicationLabels ?? {};
+const data = publication.data;
+
+const rendered = renderMarkdown(publication.body);
+// A fenced block through the same renderer as article code, so it is styled the same.
+const citation = data.citation
+  ? renderMarkdown("```bibtex\n" + data.citation.trim().replace(/```/g, "") + "\n```").html
+  : "";
+// The abstract and the citation are headings of their own, around the write-up.
+const headings = [
+  data.description && { depth: 2, slug: "abstract", text: labels.abstractHeading || "Abstract" },
+  ...rendered.headings,
+  data.citation && { depth: 2, slug: "cite", text: labels.citeHeading || "Cite" },
+].filter(Boolean);
+const date = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+})
+  .format(data.publishedOn)
+  .replace(/\//g, ".");
+const meta = [date, data.venue, PUBLICATION_KINDS[data.kind] ?? PUBLICATION_KINDS.other]
+  .filter(Boolean)
+  .join(" • ");
+const authors = authorList(data.authors);
+const doi = doiUrl(data.doi);
+const links = [
+  data.url && { label: "Paper", href: data.url, icon: ExternalLink },
+  data.pdf && { label: "PDF", href: data.pdf, icon: FileDown },
+  doi && { label: "DOI", href: doi, icon: Link2 },
+].filter(Boolean) as { label: string; href: string; icon: typeof ExternalLink }[];
+---
+
+<ArticleLayout
+  headings={headings}
+  title={data.title}
+  date={data.publishedOn}
+  readTime=""
+  meta={meta}
+  image={data.image}
+  description={data.description || ""}
+  backHref="/publications"
+>
+  {
+    authors.length > 0 && (
+      <p>
+        {authors.map((name, index) => (
+          <>
+            {index > 0 && ", "}
+            {isOwner(name, site.profile.displayName || "") ? <strong>{name}</strong> : name}
+          </>
+        ))}
+      </p>
+    )
+  }
+
+  {
+    links.length > 0 && (
+      <div class="not-prose my-4 flex flex-wrap gap-2">
+        {links.map(link => (
+          <LinkBtn
+            ariaLabel={link.label}
+            target="_blank"
+            variant="default"
+            className="text-xs"
+            href={link.href}
+          >
+            {link.label}
+            <link.icon className="size-3" />
+          </LinkBtn>
+        ))}
+      </div>
+    )
+  }
+
+  {
+    data.description && (
+      <>
+        <h2 id="abstract">{labels.abstractHeading || "Abstract"}</h2>
+        <p>{data.description}</p>
+      </>
+    )
+  }
+
+  <Fragment set:html={rendered.html} />
+
+  {
+    data.citation && (
+      <>
+        <h2 id="cite">{labels.citeHeading || "Cite"}</h2>
+        <Fragment set:html={citation} />
+      </>
+    )
+  }
+</ArticleLayout>

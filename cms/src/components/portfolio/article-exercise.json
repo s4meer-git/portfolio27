@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_portfolio_article_exercise",
+  "info": {
+    "displayName": "Try it yourself"
+  },
+  "attributes": {
+    "question": {
+      "type": "richtext"
+    },
+    "answer": {
+      "type": "richtext"
+    }
+  }
+}

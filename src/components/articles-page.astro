@@ -1,0 +1,110 @@
+---
+import ArticleItem from "@/components/article-item.astro";
+import Pattern from "@/components/ui/pattern.astro";
+import Box from "@/components/box/index.astro";
+import BoxTitle from "@/components/box/title.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxContent from "@/components/box/content.astro";
+
+import LinkTag from "@/components/ui/link-tag.astro";
+
+import Pagination from "@/components/pagination.astro";
+import PageLayout from "@/layouts/page-layout.astro";
+
+interface Props {
+  filter?: {
+    kind: "series" | "category";
+    slug: string;
+    name: string;
+    description?: string;
+  };
+}
+
+const { filter } = Astro.props;
+const portfolio = Astro.locals.portfolio;
+const labels = portfolio.site.articleLabels;
+const hasPersonalEntries = portfolio.articles.some(article => article.data.contentKind === 'personal');
+const publishedArticles = portfolio.articles.filter(article => article.data.contentKind !== 'personal');
+const articles = filter
+  ? publishedArticles.filter(article => article.data[filter.kind]?.slug === filter.slug)
+  : publishedArticles;
+
+if (filter?.kind === "series" && articles.some(article => article.data.seriesOrder)) {
+  articles.sort((a, b) => (a.data.seriesOrder || Infinity) - (b.data.seriesOrder || Infinity));
+}
+
+const title = filter?.name || labels.pageTitle;
+const description = filter
+  ? filter.description || labels[filter.kind === "series" ? "seriesPageDescription" : "categoryPageDescription"]?.replace("{name}", filter.name)
+  : labels.pageDescription;
+
+// Only show categories with published technical articles.
+const usedCategories = new Set(publishedArticles.map(article => article.data.category?.slug).filter(Boolean));
+const categories = portfolio.categories.filter(item =>
+  usedCategories.has(item.slug)
+);
+
+const currentPage = filter ? 1 : Number(Astro.params.page || 1);
+// A filtered route shows its complete published collection, not the first page
+// of the unfiltered list. Keep the navigation sections consistent on every route.
+const pageSize = filter ? Math.max(1, articles.length) : portfolio.site.articlesPerPage || 6;
+const lastPage = Math.max(1, Math.ceil(articles.length / pageSize));
+
+const page = {
+  data: articles.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+  currentPage,
+  lastPage,
+  url: {
+    prev:
+      currentPage > 1
+        ? currentPage === 2
+          ? "/articles"
+          : `/articles/${currentPage - 1}`
+        : undefined,
+    next: currentPage < lastPage ? `/articles/${currentPage + 1}` : undefined,
+  },
+};
+---
+
+<PageLayout description={description} title={title} backLink={filter ? "/articles" : undefined}>
+  <Pattern />
+
+  <Box>
+    <BoxHeader>
+      <BoxTitle>{labels.categoriesHeading}</BoxTitle>
+    </BoxHeader>
+    <BoxContent>
+      <div class="flex flex-wrap items-center justify-start gap-x-4 gap-y-3">
+        {
+          categories.map(category => (
+            <LinkTag
+              href={`/articles/categories/${category.slug}`}
+              tag={category.name}
+              active={filter?.kind === "category" && filter.slug === category.slug}
+            />
+          ))
+        }
+        {hasPersonalEntries && <LinkTag href="/journal" tag={labels.journalLinkLabel} />}
+      </div>
+    </BoxContent>
+  </Box>
+
+  <Pattern />
+
+  <Box>
+    <BoxHeader>
+      <BoxTitle>{labels.listHeading}</BoxTitle>
+    </BoxHeader>
+    <div
+      class="flex w-full flex-col items-start justify-start divide-y divide-border"
+    >
+      {page.data.map(article => <ArticleItem article={article} />)}
+    </div>
+
+    {page.lastPage > 1 && <div class="border-t py-2">
+      <Pagination page={page} />
+    </div>}
+  </Box>
+
+  <Pattern />
+</PageLayout>

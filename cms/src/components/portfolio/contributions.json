@@ -1,0 +1,40 @@
+{
+  "collectionName": "components_portfolio_contributions",
+  "info": {
+    "displayName": "Contributions",
+    "description": "The activity heatmap of GitHub and LeetCode contributions."
+  },
+  "attributes": {
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "githubUsername": {
+      "type": "string"
+    },
+    "leetcodeUsername": {
+      "type": "string"
+    },
+    "defaultView": {
+      "type": "enumeration",
+      "enum": [
+        "overall",
+        "github",
+        "leetcode"
+      ],
+      "default": "overall"
+    },
+    "overallLabel": {
+      "type": "string",
+      "default": "Overall"
+    },
+    "githubLabel": {
+      "type": "string",
+      "default": "GitHub"
+    },
+    "leetcodeLabel": {
+      "type": "string",
+      "default": "LeetCode"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_portfolio_contact_methods",
+  "info": {
+    "displayName": "Contact method",
+    "description": "A row in the call to action's Get in touch column."
+  },
+  "attributes": {
+    "icon": {
+      "type": "customField",
+      "customField": "global::icon-picker"
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "href": {
+      "type": "string",
+      "required": true
+    },
+    "newTab": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

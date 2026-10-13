@@ -1,0 +1,49 @@
+---
+const labels = Astro.locals.portfolio.site.projectLabels;
+import Pattern from "@/components/ui/pattern.astro";
+import PageLayout from "@/layouts/page-layout.astro";
+
+import Box from "@/components/box/index.astro";
+import BoxHeader from "@/components/box/header.astro";
+import BoxTitle from "@/components/box/title.astro";
+
+import ProjectItem from "@/components/sections/projects/project-item.astro";
+
+const projects = Astro.locals.portfolio.projects;
+
+const coreProjects = projects.filter(project => project.data.type === "core");
+const sideProjects = projects.filter(project => project.data.type === "side");
+---
+
+<PageLayout
+  description={labels.pageDescription}
+  title={labels.pageTitle}
+>
+  <Pattern />
+  <Box>
+    <BoxHeader>
+      <BoxTitle>{labels.coreHeading}</BoxTitle>
+    </BoxHeader>
+
+    {coreProjects.map(item => <ProjectItem project={item} />)}
+    {projects.length === 0 && (
+      <p class="px-4 py-6 text-sm text-muted-foreground sm:px-6">
+        {labels.emptyMessage || 'Projects will be added here soon.'}
+      </p>
+    )}
+  </Box>
+
+  {
+    sideProjects.length > 0 && (
+      <Pattern />
+      <Box>
+        <BoxHeader>
+          <BoxTitle>{labels.sideHeading}</BoxTitle>
+        </BoxHeader>
+        {sideProjects.map(item => <ProjectItem project={item} />)}
+      </Box>
+    )
+  }
+ 
+  <Pattern />
+</PageLayout>

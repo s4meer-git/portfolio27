@@ -1,0 +1,20 @@
+{
+  "collectionName": "components_portfolio_seo_redirect",
+  "info": {
+    "displayName": "Permanent URL redirect"
+  },
+  "attributes": {
+    "fromPath": {
+      "type": "string",
+      "required": true
+    },
+    "toPath": {
+      "type": "string",
+      "required": true
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}
