@@ -36,8 +36,16 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     volumes:
-      - ${DATA_ROOT:-/data/portfolio}/cms-data:/app/cms/.tmp
-      - ${DATA_ROOT:-/data/portfolio}/cms-uploads:/app/cms/public/uploads
+      - type: bind
+        source: /data/portfolio/cms-data
+        target: /app/cms/.tmp
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /data/portfolio/cms-uploads
+        target: /app/cms/public/uploads
+        bind:
+          create_host_path: false
     expose:
       - "1337"
     healthcheck:
@@ -71,7 +79,11 @@ services:
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       BUILD_COMMIT_SHA: ${SOURCE_COMMIT:-}
     volumes:
-      - ${DATA_ROOT:-/data/portfolio}/site-cache:/app/.cache
+      - type: bind
+        source: /data/portfolio/site-cache
+        target: /app/.cache
+        bind:
+          create_host_path: false
     expose:
       - "4321"
     healthcheck:

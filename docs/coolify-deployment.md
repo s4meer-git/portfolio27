@@ -43,6 +43,12 @@ the data into the three persistent directories, retains the existing Strapi
 secrets/admin credentials, and writes a private `/data/portfolio/coolify.env`.
 UID/GID 1000 are the `node` user inside both images.
 
+The Compose file uses explicit absolute bind mounts under `/data/portfolio`.
+This avoids Coolify interpreting interpolated storage paths as Docker volumes or
+splitting a default-value expression into the wrong source and destination.
+If using a different storage root, update all three `source` paths in
+`compose.yaml` to match it before deployment. `DATA_ROOT` does not override them.
+
 | Host directory | Container destination | Purpose |
 | --- | --- | --- |
 | `/data/portfolio/cms-data` | `/app/cms/.tmp` | CMS database, visitor database and private Spotify state |
@@ -51,6 +57,11 @@ UID/GID 1000 are the `node` user inside both images.
 
 The CMS container refuses to start if its restored database is missing or invalid.
 It will not silently create an empty replacement website.
+
+If a manual `docker run` starts but Coolify reports missing restored data, inspect
+the actual service mounts. The CMS database destination must be `/app/cms/.tmp`,
+backed by `/data/portfolio/cms-data`; the other mounts must match the table above.
+Reload the Compose file from Git after changing storage definitions.
 
 ## 3. Set the environment in Coolify
 
