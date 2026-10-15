@@ -457,7 +457,7 @@ const trackUrl = /^https:\/\/open\.spotify\.com\/(track|album|playlist)\//.test(
   if (!customElements.get("profile-clock"))
     customElements.define("profile-clock", ProfileClock);
 
-  /** Poll interval, matching the CMS's own Spotify cache. */
+  /** Browser refresh interval; the CMS shares and paces upstream requests. */
   const SPOTIFY_POLL_MS = 20000;
   /**
    * The last status, kept for the life of the tab. Navigating back to the home page

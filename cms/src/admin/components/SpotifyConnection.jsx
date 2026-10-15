@@ -37,6 +37,8 @@ export default function SpotifyConnection() {
     finally { setBusy(false); }
   }
   const dirty = clientId.trim() !== settings?.clientId || !!refreshToken;
+  const health = settings?.health;
+  const limited = health?.blockedUntil > Date.now();
   return (
     <Box padding={8} style={{ maxWidth: 1000 }}>
       <Typography variant="alpha" tag="h1">Spotify connection</Typography>
@@ -67,6 +69,10 @@ export default function SpotifyConnection() {
               </Box>
             </details>
             <Typography textColor="neutral600">{settings?.hasRefreshToken ? 'A connection token is saved.' : 'No Spotify account connected yet.'}</Typography>
+            {limited && <Typography role="status" textColor="warning700">Spotify has temporarily limited requests. The last known song stays visible. Checks resume after {new Date(health.blockedUntil).toLocaleString(undefined, { timeZoneName: 'short' })} when someone visits the website. Reconnecting or redeploying will not clear this limit.</Typography>}
+            {!limited && health?.issue === 'reconnect_required' && <Typography role="alert" textColor="danger600">Spotify rejected the saved connection. Use Connect Spotify to sign in again.</Typography>}
+            {!limited && health?.issue === 'access_denied' && <Typography role="alert" textColor="danger600">Spotify denied playback access. Check your Spotify app's user access and account eligibility.</Typography>}
+            {!!health?.lastSuccessAt && <Typography textColor="neutral600">Last successful playback check: {new Date(health.lastSuccessAt).toLocaleString(undefined, { timeZoneName: 'short' })}.</Typography>}
             <Flex gap={3} wrap="wrap">
               <Button type="submit" disabled={!settings || busy}>Save</Button>
               <Button type="button" variant="secondary" disabled={!settings?.clientId || dirty || busy} onClick={() => action('connect')}>Connect Spotify</Button>

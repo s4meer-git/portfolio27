@@ -72,6 +72,21 @@ const memoryState = () => {
   return { load: () => value, save: next => { value = next; } };
 };
 
+const PLAYING_CACHE_MS = 30_000;
+const IDLE_CACHE_MS = 120_000;
+const HISTORY_CACHE_MS = 60 * 60_000;
+
+// Only non-sensitive connection diagnostics are exposed to authenticated admins.
+function connectionHealth() {
+  const saved = fileState.load();
+  return {
+    blockedUntil: saved.blockedUntil || 0,
+    lastCheckedAt: saved.lastCheckedAt || 0,
+    lastSuccessAt: saved.lastSuccessAt || 0,
+    issue: saved.issue || null,
+  };
+}
+
 // One shared poll per CMS process, regardless of the number of visitors.
 function createSpotifyClient({
   fetcher = fetch,
@@ -83,10 +98,14 @@ function createSpotifyClient({
 } = {}) {
   const restored = state.load();
   let token = restored.token, tokenUntil = restored.tokenUntil || 0, identity = restored.identity;
-  let cached = { status: 'unavailable' }, cacheUntil = restored.blockedUntil || 0, pending;
+  let blockedUntil = restored.blockedUntil || 0;
+  let cached = { status: 'unavailable' }, cacheUntil = restored.nextCheckAt || 0, pending;
+  let historyUntil = restored.historyUntil || 0;
+  let lastCheckedAt = restored.lastCheckedAt || 0, lastSuccessAt = restored.lastSuccessAt || 0;
+  let issue = restored.issue || null;
   let lastTrack = restored.lastTrack;
   if (lastTrack) cached = { ...lastTrack.data, status: 'recent' };
-  const persist = () => state.save({ token, tokenUntil, identity, lastTrack, blockedUntil: cacheUntil > now() + 20_000 ? cacheUntil : 0 });
+  const persist = () => state.save({ token, tokenUntil, identity, lastTrack, blockedUntil, nextCheckAt: cacheUntil, historyUntil, lastCheckedAt, lastSuccessAt, issue });
   const validTrack = item => item?.type === 'track' && !item.is_local && !!item.name;
   const trackData = (item, status) => ({
     status, trackTitle: item.name,
@@ -99,12 +118,24 @@ function createSpotifyClient({
       .find(image => image.width >= 256)?.url || item.album?.images?.[0]?.url,
   });
   const remembered = () => lastTrack ? { ...lastTrack.data, status: 'recent' } : { status: 'idle' };
+  async function rateLimited(response, endpoint) {
+    const seconds = Number(response.headers.get('retry-after'));
+    const retry = Number.isFinite(seconds) && seconds > 0 ? seconds : 60;
+    blockedUntil = Math.max(blockedUntil, now() + retry * 1000);
+    const body = await response.json().catch(() => null);
+    issue = (body?.error?.reason || body?.reason) === 'QUOTA_EXCEEDED' ? 'quota_exceeded' : 'rate_limited';
+    warn(`${endpoint}: ${issue}; next request after ${new Date(blockedUntil).toISOString()}`);
+  }
   async function recentTrack() {
+    // History changes far less often than playback. Rechecking it on every idle
+    // poll exhausted Spotify's quota and froze both endpoints for many hours.
+    if (now() < historyUntil) return remembered();
+    historyUntil = now() + HISTORY_CACHE_MS;
     try {
       const response = await fetcher('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
         headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(5000),
       });
-      if (response.status === 429) cacheUntil = now() + Math.max(20, Number(response.headers.get('retry-after')) || 60) * 1000;
+      if (response.status === 429) await rateLimited(response, 'recently-played');
       if (!response.ok) {
         warn(`recently-played returned ${response.status}`);
         return remembered();
@@ -126,7 +157,7 @@ function createSpotifyClient({
     // A new connection (different client or a token we did not rotate ourselves)
     // starts clean. Hashed, so the state file never holds the refresh token.
     const key = fingerprint(credentials);
-    if (key !== identity) { token = null; lastTrack = null; identity = key; }
+    if (key !== identity) { token = null; lastTrack = null; identity = key; historyUntil = 0; }
     if (!token || tokenUntil <= now()) {
       const response = await fetcher('https://accounts.spotify.com/api/token', {
         method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -134,8 +165,9 @@ function createSpotifyClient({
         signal: AbortSignal.timeout(8000),
       });
       if (!response.ok) {
-        const body = await response.text().catch(() => '');
-        warn(`token refresh returned ${response.status} ${body.slice(0, 120)}`);
+        if (response.status === 429) await rateLimited(response, 'token refresh');
+        else issue = response.status === 400 || response.status === 401 ? 'reconnect_required' : 'temporarily_unavailable';
+        warn(`token refresh returned ${response.status}`);
         return { status: 'unavailable' };
       }
       const data = await response.json();
@@ -155,15 +187,14 @@ function createSpotifyClient({
     const response = await fetcher('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(5000),
     });
-    if (response.status === 401) { token = null; return { status: 'unavailable' }; }
+    if (response.status === 401) { token = null; issue = 'temporarily_unavailable'; return { status: 'unavailable' }; }
     if (response.status === 429) {
-      const retry = Number(response.headers.get('retry-after')) || 60;
-      cacheUntil = now() + Math.max(20, retry) * 1000;
-      warn(`rate limited by Spotify for ${retry}s; showing the last known track meanwhile`);
+      await rateLimited(response, 'currently-playing');
       return remembered();
     }
+    if (response.ok) { lastSuccessAt = now(); issue = null; }
     if (response.status === 204) return recentTrack();
-    if (!response.ok) return { status: 'unavailable' };
+    if (!response.ok) { issue = response.status === 403 ? 'access_denied' : 'temporarily_unavailable'; return { status: 'unavailable' }; }
     const data = await response.json();
     const item = data.item;
     if (data.device?.is_private_session) return remembered();
@@ -173,18 +204,19 @@ function createSpotifyClient({
     lastTrack = { data: track, observedAt: now() };
     return track;
   }
-  const persistAfter = async () => {
-    const result = await request();
-    persist();
-    return result;
-  };
   return async () => {
     if (pending) return pending;
+    // Keep Spotify's Retry-After separate from our ordinary cache TTL. An idle
+    // cache must never clear an upstream limit, including after a deployment.
+    if (now() < blockedUntil) return remembered();
     if (now() < cacheUntil) return cached;
     pending = (async () => {
-      cacheUntil = now() + 20_000;
-      try { cached = await persistAfter(); }
-      catch { cached = { status: 'unavailable' }; }
+      lastCheckedAt = now();
+      blockedUntil = 0;
+      try { cached = await request(); }
+      catch { cached = { status: 'unavailable' }; issue = 'temporarily_unavailable'; }
+      cacheUntil = now() + (cached.status === 'playing' ? PLAYING_CACHE_MS : IDLE_CACHE_MS);
+      persist();
       return cached;
     })();
     try { return await pending; } finally { pending = null; }
@@ -251,4 +283,5 @@ module.exports = {
   trackIdFromUrl,
   readCredentials,
   saveCredentials,
+  connectionHealth,
 };

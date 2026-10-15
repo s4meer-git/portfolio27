@@ -30,17 +30,17 @@ assert.equal(credentials.refreshToken, 'rotated-refresh');
 assert.ok(!JSON.stringify(first).includes('private'));
 await client(); assert.equal(calls, 2, 'cached across visitors');
 for (const value of ['paused', 'empty', 'episode', 'private']) {
-  mode = value; instant += 21000;
+  mode = value; instant += 121000;
   assert.equal((await client()).status, 'recent', value);
   assert.equal((await client()).albumCover, first.albumCover, 'keeps the latest cover');
 }
-mode = 'limited'; instant += 21000;
+mode = 'limited'; instant += 121000;
 // Rate limited: keep showing the last known track instead of blanking the row.
 assert.equal((await client()).status, 'recent', 'rate limit keeps the last track');
 const before = calls;
 instant += 80000; await client(); assert.equal(calls, before, 'Retry-After respected');
-mode = 'revoked'; instant += 20000; assert.equal((await client()).status, 'unavailable');
-mode = 'offline'; instant += 21000; assert.equal((await client()).status, 'unavailable');
+mode = 'revoked'; instant += 41000; assert.equal((await client()).status, 'unavailable');
+mode = 'offline'; instant += 121000; assert.equal((await client()).status, 'unavailable');
 assert.deepEqual(await spotifyStatus({ enabled: false }), { enabled: false });
 assert.equal((await createSpotifyClient({ read: () => null })()).status, 'disconnected');
 

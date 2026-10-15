@@ -1,5 +1,5 @@
 const crypto = require('node:crypto');
-const { readCredentials, saveCredentials } = require('./spotify');
+const { readCredentials, saveCredentials, connectionHealth } = require('./spotify');
 
 function createConnectionHandlers({ read = readCredentials, save = saveCredentials, fetcher = fetch, redirectUri, now = Date.now }) {
   const pending = new Map();
@@ -11,7 +11,7 @@ function createConnectionHandlers({ read = readCredentials, save = saveCredentia
     return { clientId: credentials?.clientId || '', hasRefreshToken: !!credentials?.refreshToken, redirectUri };
   };
   return {
-    status(ctx) { ctx.set('Cache-Control', 'no-store'); ctx.body = summary(); },
+    status(ctx) { ctx.set('Cache-Control', 'no-store'); ctx.body = { ...summary(), health: connectionHealth() }; },
     save(ctx) {
       const clientId = typeof ctx.request.body?.clientId === 'string' ? ctx.request.body.clientId.trim() : '';
       const refreshToken = typeof ctx.request.body?.refreshToken === 'string' ? ctx.request.body.refreshToken.trim() : '';

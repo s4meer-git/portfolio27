@@ -115,6 +115,14 @@ If Spotify needs reconnecting, add
 `https://cms.s4meer.com/spotify-connection/callback` to the Spotify application's
 allowed redirect URIs, then reconnect through the CMS.
 
+Spotify uses an on-demand cache shared by all visitors: 30 seconds during
+playback, two minutes while idle, and one hour for listening history. There is no
+background polling when the site has no visitors. Cache deadlines and Spotify's
+`Retry-After` cooldown persist in `cms-data/.spotify-state.local` through restarts.
+Do not delete that file to clear a rate limit. CMS Settings → Spotify connection
+shows the cooldown and last successful playback check; a saved token alone does
+not mean Spotify is currently accepting requests.
+
 ## 5. Deploy and verify
 
 Select Deploy. Check build logs, runtime logs and both service health checks.
